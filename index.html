@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pai e Filho – Assistência Técnica</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde-escuro:#1a3a2a; --verde-medio:#2d6a4f; --verde-vivo:#52b788;
+    --verde-mint:#74c69d; --verde-pale:#d8f3dc; --verde-bg:#f0faf3;
+    --cinza-claro:#f4f7f5; --cinza-medio:#e0ebe4; --cinza-texto:#4a5568;
+    --cinza-dark:#2d3748; --laranja:#e76f51; --amarelo:#f4a261;
+    --azul:#457b9d; --vermelho:#e63946;
+    --shadow:0 4px 20px rgba(26,58,42,0.12); --shadow-lg:0 8px 40px rgba(26,58,42,0.18);
+    --radius:12px; --radius-lg:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Barlow',sans-serif;background:var(--verde-bg);color:var(--cinza-dark);min-height:100vh;display:flex;}
+
+  /* ── LOADING ── */
+  #loading-screen{position:fixed;inset:0;background:var(--verde-escuro);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
+  #loading-screen.hide{opacity:0;pointer-events:none;}
+  .loading-logo{width:72px;height:72px;background:var(--verde-vivo);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;}
+  .loading-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:2px;}
+  .loading-sub{color:var(--verde-mint);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+  .loading-bar{width:200px;height:3px;background:rgba(255,255,255,0.15);border-radius:3px;margin-top:32px;overflow:hidden;}
+  .loading-bar-fill{height:100%;background:var(--verde-vivo);border-radius:3px;animation:loadbar 1.5s ease-in-out infinite;}
+  @keyframes loadbar{0%{width:0;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0;margin-left:100%}}
+  .loading-status{color:rgba(255,255,255,0.45);font-size:12px;margin-top:12px;}
+
+  /* ── LOGIN ── */
+  #login-screen{position:fixed;inset:0;background:var(--verde-escuro);display:none;align-items:center;justify-content:center;z-index:8000;}
+  #login-screen.show{display:flex;}
+  .login-box{background:#fff;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);text-align:center;}
+  .login-logo{width:64px;height:64px;background:var(--verde-vivo);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;}
+  .login-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:1px;}
+  .login-sub{font-size:13px;color:var(--cinza-texto);margin-top:4px;margin-bottom:32px;}
+  .login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;text-align:left;}
+  .login-field label{font-size:11px;font-weight:700;color:var(--cinza-texto);text-transform:uppercase;letter-spacing:.5px;}
+  .login-field input{padding:12px 16px;border:1.5px solid var(--cinza-medio);border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;outline:none;transition:border-color .2s;}
+  .login-field input:focus{border-color:var(--verde-medio);box-shadow:0 0 0 3px rgba(45,106,79,0.1);}
+  .login-btn{width:100%;padding:13px;background:var(--verde-medio);color:#fff;border:none;border-radius:10px;font-family:'Barlow',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
+  .login-btn:hover{background:var(--verde-escuro);}
+  .login-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .login-error{background:#fee2e2;color:#991b1b;border-radius:8px;padding:10px 14px;font-size:13px;margin-top:12px;display:none;}
+  .login-footer{margin-top:24px;font-size:12px;color:var(--cinza-texto);}
+
+  /* ── SIDEBAR ── */
+  #sidebar{width:240px;min-height:100vh;background:var(--verde-escuro);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;}
+  .logo-area{padding:28px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+  .logo-icon{width:48px;height:48px;background:var(--verde-vivo);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px;}
+  .logo-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:1px;line-height:1.1;}
+  .logo-sub{font-size:10px;color:var(--verde-mint);text-transform:uppercase;letter-spacing:2px;margin-top:2px;}
+  .user-info{display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;background:rgba(255,255,255,0.07);border-radius:10px;}
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--verde-medio);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+  .user-name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .user-role{font-size:10px;color:rgba(255,255,255,.4);}
+  .sync-status{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:rgba(255,255,255,0.35);}
+  .sync-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0;transition:background .3s;}
+  .sync-dot.online{background:var(--verde-vivo);box-shadow:0 0 5px var(--verde-vivo);}
+  .sync-dot.syncing{background:var(--amarelo);animation:blink 1s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+  nav{flex:1;padding:12px 0;overflow-y:auto;}
+  .nav-section{font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:2px;padding:14px 20px 6px;}
+  .nav-btn{width:100%;display:flex;align-items:center;gap:12px;padding:10px 20px;background:none;border:none;color:rgba(255,255,255,0.7);font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:left;transition:all .2s;position:relative;}
+  .nav-btn:hover{background:rgba(255,255,255,0.07);color:#fff;}
+  .nav-btn.active{background:var(--verde-medio);color:#fff;}
+  .nav-btn.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--verde-vivo);border-radius:0 3px 3px 0;}
+  .nav-btn.hidden-nav{display:none;}
+  .nav-icon{font-size:17px;flex-shrink:0;width:20px;text-align:center;}
+  .badge{margin-left:auto;background:var(--laranja);color:#fff;border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;}
+  .sidebar-bottom{padding:14px 20px;border-top:1px solid rgba(255,255,255,0.1);}
+  .btn-logout{width:100%;display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(231,111,81,0.15);border:1px solid rgba(231,111,81,0.3);border-radius:8px;color:rgba(255,255,255,.7);font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;}
+  .btn-logout:hover{background:rgba(231,111,81,.35);color:#fff;}
+
+  /* ── MAIN ── */
+  #main{margin-left:240px;flex:1;min-height:100vh;display:flex;flex-direction:column;}
+  .topbar{background:#fff;border-bottom:1px solid var(--cinza-medio);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+  .topbar-title{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:700;color:var(--verde-escuro);}
+  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .perfil-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+  .perfil-admin{background:#dcfce7;color:#166534;}
+  .perfil-tecnico{background:#dbeafe;color:#1e40af;}
+  .content{padding:24px 32px;flex:1;}
+  .page{display:none;} .page.active{display:block;}
+
+  /* ── BOTÕES ── */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .18s;white-space:nowrap;}
+  .btn-primary{background:var(--verde-medio);color:#fff;} .btn-primary:hover{background:var(--verde-escuro);transform:translateY(-1px);}
+  .btn-outline{background:transparent;border:1.5px solid var(--verde-medio);color:var(--verde-medio);} .btn-outline:hover{background:var(--verde-pale);}
+  .btn-danger{background:#fee2e2;color:var(--vermelho);} .btn-danger:hover{background:var(--vermelho);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12px;} .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+  /* ── STATS ── */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;transition:transform .2s;}
+  .stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+  .stat-icon{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .stat-icon.verde{background:var(--verde-pale);} .stat-icon.laranja{background:#fef3ec;}
+  .stat-icon.azul{background:#e8f4f8;} .stat-icon.vermelho{background:#fee2e2;}
+  .stat-val{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;color:var(--verde-escuro);line-height:1;}
+  .stat-label{font-size:12px;color:var(--cinza-texto);font-weight:500;margin-top:3px;}
+  .admin-only{} .hidden-admin{display:none!important;}
+
+  /* ── CARD / TABLE ── */
+  .card{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px;}
+  .card-header{padding:16px 22px;border-bottom:1px solid var(--cinza-medio);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .card-title{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:var(--verde-escuro);}
+  .search-box{display:flex;align-items:center;gap:8px;background:var(--cinza-claro);border:1.5px solid var(--cinza-medio);border-radius:8px;padding:7px 12px;font-size:13px;}
+  .search-box input{background:none;border:none;outline:none;font-family:'Barlow',sans-serif;font-size:13px;color:var(--cinza-dark);width:160px;}
+  table{width:100%;border-collapse:collapse;}
+  th{background:var(--cinza-claro);padding:11px 15px;text-align:left;font-size:11px;font-weight:700;color:var(--cinza-texto);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
+  td{padding:12px 15px;font-size:13px;border-bottom:1px solid var(--cinza-medio);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;} tr:hover td{background:var(--verde-bg);}
+  .td-actions{display:flex;gap:5px;}
+
+  /* ── STATUS ── */
+  .status{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .status::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.7;}
+  .status-aguardando{background:#fef9c3;color:#854d0e;} .status-aprovado{background:#dcfce7;color:#166534;}
+  .status-execucao{background:#dbeafe;color:#1e40af;} .status-pronto{background:#f0fdf4;color:#15803d;border:1px solid #86efac;}
+  .status-entregue{background:#f1f5f9;color:#475569;} .status-cancelado{background:#fee2e2;color:#991b1b;}
+
+  /* ── MODAIS ── */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:100%;max-width:680px;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease;}
+  @keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+  .modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--cinza-medio);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2;}
+  .modal-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:var(--verde-escuro);}
+  .modal-close{width:30px;height:30px;border-radius:7px;background:var(--cinza-claro);border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:var(--cinza-texto);transition:all .18s;}
+  .modal-close:hover{background:#fee2e2;color:var(--vermelho);}
+  .modal-body{padding:20px 24px;} .modal-footer{padding:14px 24px;border-top:1px solid var(--cinza-medio);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;}
+
+  /* ── FORM ── */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+  .form-group{display:flex;flex-direction:column;gap:5px;} .form-group.full{grid-column:1/-1;}
+  label{font-size:11px;font-weight:700;color:var(--cinza-texto);text-transform:uppercase;letter-spacing:.5px;}
+  input,select,textarea{padding:9px 13px;border:1.5px solid var(--cinza-medio);border-radius:8px;font-family:'Barlow',sans-serif;font-size:13px;color:var(--cinza-dark);background:#fff;outline:none;transition:border-color .18s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--verde-medio);box-shadow:0 0 0 3px rgba(45,106,79,.1);}
+  textarea{resize:vertical;min-height:75px;}
+  .separator{font-size:12px;font-weight:700;color:var(--verde-medio);background:var(--verde-pale);padding:7px 14px;border-radius:6px;margin:14px 0 10px;}
+  .total-bar{background:var(--verde-pale);border:1px solid var(--verde-mint);border-radius:8px;padding:9px 14px;font-size:13px;margin-top:10px;}
+  .total-bar span{font-weight:700;color:var(--verde-escuro);}
+
+  /* ── EXTRAS ── */
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .notif{position:fixed;bottom:24px;right:24px;color:#fff;border-radius:10px;padding:13px 18px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);z-index:9999;display:none;animation:notifIn .3s ease;}
+  @keyframes notifIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  .empty-state{text-align:center;padding:44px 20px;color:var(--cinza-texto);}
+  .empty-icon{font-size:44px;margin-bottom:10px;} .empty-title{font-size:15px;font-weight:600;color:var(--cinza-dark);margin-bottom:4px;}
+  .diasbadge{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:700;}
+  .dias-ok{background:#dcfce7;color:#166534;} .dias-medio{background:#fef9c3;color:#854d0e;}
+  .dias-alto{background:#fef3c7;color:#b45309;} .dias-critico{background:#fee2e2;color:#991b1b;}
+  .prazo-ok{color:#166534;} .prazo-alerta{color:#b45309;font-weight:700;} .prazo-atrasado{color:var(--vermelho);font-weight:700;}
+  .timeline{list-style:none;}
+  .tl-item{display:flex;gap:12px;margin-bottom:14px;position:relative;}
+  .tl-dot{width:34px;height:34px;border-radius:50%;background:var(--verde-pale);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+  .tl-item::before{content:'';position:absolute;left:16px;top:34px;width:2px;height:calc(100% + 4px);background:var(--cinza-medio);}
+  .tl-item:last-child::before{display:none;}
+  .tl-content{flex:1;padding-top:5px;}
+  .tl-title{font-size:13px;font-weight:600;color:var(--cinza-dark);}
+  .tl-meta{font-size:11px;color:var(--cinza-texto);margin-top:2px;}
+  .comp-logo{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:2px solid var(--verde-medio);}
+  .comp-logo-icon{width:54px;height:54px;background:var(--verde-medio);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .comp-logo-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--verde-escuro);text-transform:uppercase;}
+  .comp-logo-sub{font-size:11px;color:var(--cinza-texto);}
+  .comp-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:var(--verde-medio);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+  .comp-row{display:flex;gap:8px;margin-bottom:7px;font-size:13px;}
+  .comp-row strong{min-width:150px;color:var(--cinza-dark);}
+  .comp-section{margin-top:18px;margin-bottom:10px;}
+  .comp-section-title{font-size:10px;font-weight:700;color:var(--verde-medio);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--verde-pale);padding-bottom:4px;margin-bottom:9px;}
+  .comp-table{width:100%;border-collapse:collapse;font-size:13px;}
+  .comp-table th{background:var(--verde-pale);padding:7px 11px;text-align:left;font-size:10px;font-weight:700;color:var(--verde-escuro);}
+  .comp-table td{padding:7px 11px;border-bottom:1px solid #eee;}
+  .comp-total{margin-top:10px;background:var(--verde-pale);padding:11px 15px;border-radius:8px;display:flex;justify-content:space-between;font-weight:700;font-size:15px;color:var(--verde-escuro);}
+  .comp-footer{margin-top:26px;font-size:11px;color:var(--cinza-texto);text-align:center;border-top:1px solid var(--cinza-medio);padding-top:12px;}
+
+  @media(max-width:900px){
+    #sidebar{width:58px;}
+    .logo-title,.logo-sub,.user-info,.sync-status,.nav-btn span,.nav-section,.badge,.sidebar-bottom .empresa-info{display:none;}
+    .nav-btn{justify-content:center;padding:11px;}
+    #main{margin-left:58px;}
+    .form-grid,.form-grid.cols-3{grid-template-columns:1fr;}
+    .dashboard-cols{grid-template-columns:1fr!important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loading-logo">🔧</div>
+  <div class="loading-title">Pai e Filho</div>
+  <div class="loading-sub">Assistência Técnica</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <div class="loading-status" id="loading-status">Verificando autenticação...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🔧</div>
+    <div class="login-title">Pai e Filho</div>
+    <div class="login-sub">Assistência Técnica · Acesso Restrito</div>
+    <div class="login-field">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="login-btn" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-error" id="login-erro"></div>
+    <div class="login-footer">Problemas? Fale com o administrador do sistema.</div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">🔧</div>
+    <div class="logo-title">Pai e Filho</div>
+    <div class="logo-sub">Assistência Técnica</div>
+    <div class="user-info">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div><div class="user-name" id="user-name">Carregando...</div><div class="user-role" id="user-role-label">—</div></div>
+    </div>
+    <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Conectando...</span></div>
+  </div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <button class="nav-btn active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+    <button class="nav-btn" onclick="showPage('clientes')"><span class="nav-icon">👥</span><span>Clientes</span></button>
+    <div class="nav-section">Serviços</div>
+    <button class="nav-btn" onclick="showPage('ordens')"><span class="nav-icon">📋</span><span>Ordens de Serviço</span><span class="badge" id="badge-ordens">0</span></button>
+    <button class="nav-btn" onclick="showPage('orcamentos')"><span class="nav-icon">💰</span><span>Orçamentos</span></button>
+    <button class="nav-btn" onclick="showPage('execucao')"><span class="nav-icon">⚙️</span><span>Em Execução</span></button>
+    <button class="nav-btn" onclick="showPage('prazos')"><span class="nav-icon">📅</span><span>Prazos / Agenda</span></button>
+    <div class="nav-section admin-only">Gestão</div>
+    <button class="nav-btn admin-only" id="nav-relatorio" onclick="showPage('relatorio')"><span class="nav-icon">📈</span><span>Relatórios</span></button>
+    <button class="nav-btn admin-only" id="nav-usuarios" onclick="showPage('usuarios')"><span class="nav-icon">👤</span><span>Usuários</span></button>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="btn-logout" onclick="fazerLogout()"><span>🚪</span><span>Sair</span></button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <header class="topbar">
+    <div class="topbar-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions" id="topbar-actions">
+      <span class="perfil-badge" id="perfil-badge"></span>
+    </div>
+  </header>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="stats-grid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px" class="dashboard-cols">
+        <div class="card"><div class="card-header"><div class="card-title">⚠️ Prazos Críticos</div></div><div id="dash-prazos" style="padding:14px"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">🕐 Últimas Atividades</div></div><div id="dash-atividades" style="padding:14px"></div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">📋 Ordens Recentes</div></div>
+        <table><thead><tr><th>#OS</th><th>Cliente</th><th>Aparelho</th><th>Status</th><th>Prazo</th><th class="admin-only">Valor</th></tr></thead><tbody id="dash-ordens"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div class="page" id="page-clientes">
+      <div class="card"><div class="card-header"><div class="card-title">👥 Clientes</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="search-box">🔍<input type="text" placeholder="Buscar..." oninput="filtrarClientes(this.value)"></div>
+          <button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>
+        </div></div>
+        <table><thead><tr><th>#</th><th>Nome</th><th>Telefone</th><th>CPF/CNPJ</th><th>Cidade</th><th>OS's</th><th>Ações</th></tr></thead><tbody id="tabela-clientes"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ORDENS -->
+    <div class="page" id="page-ordens">
+      <div class="card"><div class="card-header"><div class="card-title">📋 Ordens de Serviço</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div class="search-box">🔍<input type="text" id="search-os" placeholder="Buscar..." oninput="filtrarOS(this.value)"></div>
+          <select id="filtro-status" style="padding:8px 11px;border-radius:8px;border:1.5px solid var(--cinza-medio);font-size:12px" onchange="filtrarOSStatus(this.value)">
+            <option value="">Todos status</option><option>Aguardando</option><option>Aprovado</option>
+            <option>Em Execução</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option>
+          </select>
+          <button class="btn btn-primary" onclick="abrirModalOS()">➕ Nova OS</button>
+        </div></div>
+        <table><thead><tr><th>#OS</th><th>Data</th><th>Cliente</th><th>Aparelho</th><th>Defeito</th><th>Status</th><th>Prazo</th><th class="admin-only">Valor</th><th>Ações</th></tr></thead><tbody id="tabela-ordens"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ORÇAMENTOS -->
+    <div class="page" id="page-orcamentos">
+      <div class="card"><div class="card-header"><div class="card-title">💰 Orçamentos</div>
+        <button class="btn btn-primary" onclick="abrirModalOrcamento()">➕ Novo Orçamento</button></div>
+        <table><thead><tr><th>#</th><th>Data</th><th>Cliente</th><th>Aparelho</th><th>Descrição</th><th class="admin-only">Valor</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tabela-orcamentos"></tbody></table>
+      </div>
+    </div>
+
+    <!-- EXECUÇÃO -->
+    <div class="page" id="page-execucao">
+      <div class="card"><div class="card-header"><div class="card-title">⚙️ Serviços em Execução</div></div>
+        <table><thead><tr><th>#OS</th><th>Cliente</th><th>Aparelho</th><th>Técnico</th><th>Início</th><th>Prazo</th><th>Dias Abertos</th><th>Ações</th></tr></thead><tbody id="tabela-execucao"></tbody></table>
+      </div>
+    </div>
+
+    <!-- PRAZOS -->
+    <div class="page" id="page-prazos">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon vermelho">🔴</div><div><div class="stat-val" id="stat-atrasados">0</div><div class="stat-label">Atrasados</div></div></div>
+        <div class="stat-card"><div class="stat-icon laranja">🟡</div><div><div class="stat-val" id="stat-hoje">0</div><div class="stat-label">Vencem Hoje</div></div></div>
+        <div class="stat-card"><div class="stat-icon azul">🔵</div><div><div class="stat-val" id="stat-semana">0</div><div class="stat-label">Esta Semana</div></div></div>
+        <div class="stat-card"><div class="stat-icon verde">✅</div><div><div class="stat-val" id="stat-ok">0</div><div class="stat-label">No Prazo</div></div></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">📅 Gestão de Prazos</div></div>
+        <table><thead><tr><th>#OS</th><th>Cliente</th><th>Aparelho</th><th>Entrada</th><th>Prazo</th><th>Dias Abertos</th><th>Status Prazo</th><th>Status OS</th><th>Ações</th></tr></thead><tbody id="tabela-prazos"></tbody></table>
+      </div>
+    </div>
+
+    <!-- RELATÓRIOS (admin only) -->
+    <div class="page" id="page-relatorio">
+      <div class="stats-grid" id="stats-relatorio"></div>
+      <div class="card"><div class="card-header"><div class="card-title">📈 Resumo por Status</div></div>
+        <div id="relatorio-status" style="padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px"></div>
+      </div>
+      <div class="card"><div class="card-header"><div class="card-title">📋 Histórico</div>
+        <button class="btn btn-outline btn-sm" onclick="exportarCSV()">📤 Exportar CSV</button></div>
+        <table><thead><tr><th>#OS</th><th>Cliente</th><th>Aparelho</th><th>Status</th><th>Data</th><th>Valor</th></tr></thead><tbody id="tabela-relatorio"></tbody></table>
+      </div>
+    </div>
+
+    <!-- USUÁRIOS (admin only) -->
+    <div class="page" id="page-usuarios">
+      <div class="card"><div class="card-header"><div class="card-title">👤 Gerenciar Usuários</div>
+        <button class="btn btn-primary" onclick="abrirModalUsuario()">➕ Adicionar Usuário</button></div>
+        <table><thead><tr><th>E-mail</th><th>Nome</th><th>Perfil</th><th>Ações</th></tr></thead><tbody id="tabela-usuarios"></tbody></table>
+      </div>
+      <div class="card" style="padding:20px">
+        <div class="card-title" style="margin-bottom:12px">ℹ️ Como funciona</div>
+        <p style="font-size:13px;color:var(--cinza-texto);line-height:1.7">
+          1. Crie o usuário no <strong>Firebase Console → Authentication → Users</strong><br>
+          2. Cadastre o e-mail aqui com o perfil desejado<br>
+          3. <strong>Admin</strong> → acessa tudo, incluindo valores e relatórios<br>
+          4. <strong>Técnico</strong> → acessa OS, clientes e prazos, sem dados financeiros
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal"><div class="modal-header"><div class="modal-title" id="title-cliente">Novo Cliente</div><button class="modal-close" onclick="fecharModal('modal-cliente')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group full"><label>Nome *</label><input id="c-nome" type="text" placeholder="Nome completo"></div>
+      <div class="form-group"><label>Telefone *</label><input id="c-tel" type="text" placeholder="(31) 99999-9999"></div>
+      <div class="form-group"><label>CPF / CNPJ</label><input id="c-cpf" type="text" placeholder="000.000.000-00"></div>
+      <div class="form-group"><label>Email</label><input id="c-email" type="email" placeholder="email@exemplo.com"></div>
+      <div class="form-group"><label>Cidade</label><input id="c-cidade" type="text" placeholder="Vespasiano"></div>
+      <div class="form-group full"><label>Endereço</label><input id="c-end" type="text" placeholder="Rua, número, bairro"></div>
+      <div class="form-group full"><label>Observações</label><textarea id="c-obs" placeholder="Informações adicionais..."></textarea></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-cliente')">Cancelar</button><button class="btn btn-primary" id="btn-save-cliente" onclick="salvarCliente()">💾 Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL OS -->
+<div class="modal-overlay" id="modal-os">
+  <div class="modal" style="max-width:760px"><div class="modal-header"><div class="modal-title" id="title-os">Nova OS</div><button class="modal-close" onclick="fecharModal('modal-os')">✕</button></div>
+    <div class="modal-body">
+      <div class="separator">📋 Informações</div>
+      <div class="form-grid cols-3">
+        <div class="form-group"><label>Data Entrada *</label><input id="os-data" type="date"></div>
+        <div class="form-group"><label>Prazo Entrega</label><input id="os-prazo" type="date"></div>
+        <div class="form-group"><label>Técnico</label><input id="os-tecnico" type="text" placeholder="Nome do técnico"></div>
+      </div>
+      <div class="separator">👤 Cliente</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Cliente *</label><select id="os-cliente"><option value="">Selecione...</option></select></div>
+        <div class="form-group"><label>Telefone</label><input id="os-tel" type="text" readonly style="background:var(--cinza-claro)"></div>
+      </div>
+      <div class="separator">🔧 Aparelho</div>
+      <div class="form-grid cols-3">
+        <div class="form-group"><label>Tipo *</label>
+          <select id="os-aparelho"><option value="">Selecione...</option>
+          <option>Geladeira</option><option>Freezer</option><option>Máquina de Lavar</option>
+          <option>Secadora</option><option>Fogão</option><option>Forno Microondas</option>
+          <option>Lava-Louças</option><option>Ar Condicionado</option><option>Televisor</option>
+          <option>Ventilador</option><option>Ferro de Passar</option><option>Outros</option></select>
+        </div>
+        <div class="form-group"><label>Marca</label><input id="os-marca" type="text" placeholder="Brastemp, Samsung..."></div>
+        <div class="form-group"><label>Modelo / Série</label><input id="os-modelo" type="text"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Defeito Relatado *</label><textarea id="os-defeito" placeholder="Problema relatado pelo cliente..."></textarea></div>
+        <div class="form-group full"><label>Diagnóstico Técnico</label><textarea id="os-diagnostico" placeholder="Diagnóstico do técnico..."></textarea></div>
+      </div>
+      <div class="separator admin-only">💰 Valores</div>
+      <div class="form-grid cols-3 admin-only">
+        <div class="form-group"><label>Mão de Obra (R$)</label><input id="os-mo" type="number" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group"><label>Peças (R$)</label><input id="os-pecas" type="number" placeholder="0,00" step="0.01" min="0" oninput="calcTotal()"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="os-status"><option>Aguardando</option><option>Aprovado</option><option>Em Execução</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px"><label>Status</label>
+        <select id="os-status-tec" class="hidden-admin"><option>Aguardando</option><option>Aprovado</option><option>Em Execução</option><option>Pronto</option><option>Entregue</option><option>Cancelado</option></select>
+      </div>
+      <div class="form-group" style="margin-top:10px"><label>Observações Internas</label><textarea id="os-obs" placeholder="Notas internas..."></textarea></div>
+      <div class="total-bar admin-only">Total: <span id="os-total">R$ 0,00</span></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-os')">Cancelar</button><button class="btn btn-primary" id="btn-save-os" onclick="salvarOS()">💾 Salvar OS</button></div>
+  </div>
+</div>
+
+<!-- MODAL ORÇAMENTO -->
+<div class="modal-overlay" id="modal-orcamento">
+  <div class="modal"><div class="modal-header"><div class="modal-title" id="title-orc">Novo Orçamento</div><button class="modal-close" onclick="fecharModal('modal-orcamento')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label>Cliente *</label><select id="orc-cliente"><option value="">Selecione...</option></select></div>
+      <div class="form-group"><label>Data</label><input id="orc-data" type="date"></div>
+      <div class="form-group"><label>Aparelho</label><input id="orc-aparelho" type="text" placeholder="Tipo e modelo"></div>
+      <div class="form-group"><label>Validade (dias)</label><input id="orc-validade" type="number" value="7" min="1"></div>
+      <div class="form-group full"><label>Descrição *</label><textarea id="orc-desc" placeholder="Descreva os serviços e peças..."></textarea></div>
+      <div class="form-group admin-only"><label>Mão de Obra (R$)</label><input id="orc-mo" type="number" placeholder="0,00" step="0.01" min="0"></div>
+      <div class="form-group admin-only"><label>Peças (R$)</label><input id="orc-pecas" type="number" placeholder="0,00" step="0.01" min="0"></div>
+      <div class="form-group"><label>Status</label><select id="orc-status"><option>Pendente</option><option>Aprovado</option><option>Recusado</option></select></div>
+      <div class="form-group"><label>Observações</label><textarea id="orc-obs" placeholder="Condições..."></textarea></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-orcamento')">Cancelar</button><button class="btn btn-primary" id="btn-save-orc" onclick="salvarOrcamento()">💾 Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal" style="max-width:480px"><div class="modal-header"><div class="modal-title" id="title-usuario">Adicionar Usuário</div><button class="modal-close" onclick="fecharModal('modal-usuario')">✕</button></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group full"><label>E-mail *</label><input id="u-email" type="email" placeholder="usuario@email.com"></div>
+      <div class="form-group full"><label>Nome de exibição</label><input id="u-nome" type="text" placeholder="Nome do técnico ou admin"></div>
+      <div class="form-group full"><label>Perfil *</label>
+        <select id="u-perfil">
+          <option value="tecnico">Técnico (sem acesso financeiro)</option>
+          <option value="admin">Admin (acesso total)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px;background:#fef9c3;border-radius:8px;padding:11px 14px;font-size:12px;color:#854d0e;line-height:1.6">
+      ⚠️ Lembre-se de criar o usuário também no <strong>Firebase Console → Authentication</strong> com o mesmo e-mail antes de liberar o acesso.
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-usuario')">Cancelar</button><button class="btn btn-primary" id="btn-save-usuario" onclick="salvarUsuario()">💾 Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL COMPROVANTE -->
+<div class="modal-overlay" id="modal-comprovante">
+  <div class="modal" style="max-width:700px"><div class="modal-header"><div class="modal-title">🖨️ Comprovante</div><button class="modal-close" onclick="fecharModal('modal-comprovante')">✕</button></div>
+    <div class="modal-body"><div id="area-comprovante"></div></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-comprovante')">Fechar</button><button class="btn btn-primary" onclick="imprimirComp()">🖨️ Imprimir</button></div>
+  </div>
+</div>
+
+<!-- MODAL VER OS -->
+<div class="modal-overlay" id="modal-ver-os">
+  <div class="modal" style="max-width:700px"><div class="modal-header"><div class="modal-title" id="ver-os-title">OS</div><button class="modal-close" onclick="fecharModal('modal-ver-os')">✕</button></div>
+    <div class="modal-body" id="ver-os-body"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-ver-os')">Fechar</button><button class="btn btn-primary" onclick="printCurrentOS()">🖨️ Imprimir</button></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.1/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.1/firebase-auth.js";
+
+// ── CONFIG ────────────────────────────────────────────────────
+const app = initializeApp({
+  apiKey: "AIzaSyDeK2Ds_3_sy_uP1DAi_4fQAflBVOplZrI",
+  authDomain: "paiefilho-ztech.firebaseapp.com",
+  projectId: "paiefilho-ztech",
+  storageBucket: "paiefilho-ztech.firebasestorage.app",
+  messagingSenderId: "992110253613",
+  appId: "1:992110253613:web:186ab383fdd4f087840aa4"
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ── ESTADO ────────────────────────────────────────────────────
+let clientes=[], ordens=[], orcamentos=[], usuariosCad=[];
+let perfilAtual='tecnico', emailAtual='', nomeAtual='';
+let editCliente=null, editOS=null, editOrc=null, editUsuario=null, currentOSid=null;
+let paginaAtual='dashboard';
+const loaded={c:false,o:false,orc:false};
+let unsubClientes=null, unsubOrdens=null, unsubOrcamentos=null;
+
+// ── AUTH ──────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    emailAtual = user.email;
+    document.getElementById('loading-status').textContent = 'Carregando perfil...';
+    await carregarPerfil(user.uid, user.email);
+    document.getElementById('login-screen').classList.remove('show');
+    aplicarPerfil();
+    iniciarListeners();
+  } else {
+    pararListeners();
+    hideLoading();
+    document.getElementById('login-screen').classList.add('show');
+  }
+});
+
+async function carregarPerfil(uid, email) {
+  try {
+    const snap = await getDoc(doc(db, 'usuarios', uid));
+    if (snap.exists()) {
+      const d = snap.data();
+      perfilAtual = d.perfil || 'tecnico';
+      nomeAtual = d.nome || email.split('@')[0];
+    } else {
+      // Se for o admin principal, cria automaticamente
+      if (email === 'admin@paiefilho.com.br') {
+        await setDoc(doc(db, 'usuarios', uid), { email, perfil: 'admin', nome: 'Administrador', criadoEm: serverTimestamp() });
+        perfilAtual = 'admin';
+        nomeAtual = 'Administrador';
+      } else {
+        perfilAtual = 'tecnico';
+        nomeAtual = email.split('@')[0];
+      }
+    }
+  } catch(e) {
+    perfilAtual = 'tecnico';
+    nomeAtual = email.split('@')[0];
+  }
+}
+
+function aplicarPerfil() {
+  const isAdmin = perfilAtual === 'admin';
+
+  // Avatar e nome
+  const ini = nomeAtual.charAt(0).toUpperCase();
+  document.getElementById('user-avatar').textContent = ini;
+  document.getElementById('user-name').textContent = nomeAtual;
+  document.getElementById('user-role-label').textContent = isAdmin ? '👑 Administrador' : '🔧 Técnico';
+
+  // Badge no topbar
+  const badge = document.getElementById('perfil-badge');
+  badge.className = 'perfil-badge ' + (isAdmin ? 'perfil-admin' : 'perfil-tecnico');
+  badge.textContent = isAdmin ? '👑 Admin' : '🔧 Técnico';
+
+  // Itens de navegação admin
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+
+  // Itens ocultos para admin (campos de status para técnico)
+  document.querySelectorAll('.hidden-admin').forEach(el => {
+    el.style.display = isAdmin ? 'none' : '';
+  });
+}
+
+window.fazerLogin = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  const erro = document.getElementById('login-erro');
+  const btn = document.getElementById('btn-login');
+  erro.style.display = 'none';
+  if (!email || !senha) { mostrarErroLogin('Preencha e-mail e senha.'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Entrando...';
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch(e) {
+    const msgs = { 'auth/user-not-found':'Usuário não encontrado.', 'auth/wrong-password':'Senha incorreta.', 'auth/invalid-email':'E-mail inválido.', 'auth/invalid-credential':'E-mail ou senha incorretos.', 'auth/too-many-requests':'Muitas tentativas. Aguarde e tente novamente.' };
+    mostrarErroLogin(msgs[e.code] || 'Erro ao entrar. Verifique seus dados.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Entrar';
+};
+
+function mostrarErroLogin(msg) {
+  const el = document.getElementById('login-erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+window.fazerLogout = async function() {
+  if (!confirm('Deseja sair do sistema?')) return;
+  await signOut(auth);
+};
+
+// ── LISTENERS ─────────────────────────────────────────────────
+function setSyncStatus(s) {
+  const dot=document.getElementById('sync-dot'), lbl=document.getElementById('sync-label');
+  if(s==='online'){dot.className='sync-dot online';lbl.textContent='Online';}
+  else if(s==='syncing'){dot.className='sync-dot syncing';lbl.textContent='Salvando...';}
+  else{dot.className='sync-dot';lbl.textContent='Offline';}
+}
+
+function hideLoading() {
+  const ls = document.getElementById('loading-screen');
+  ls.classList.add('hide');
+  setTimeout(() => ls.style.display='none', 500);
+}
+
+function checkLoaded() {
+  if (loaded.c && loaded.o && loaded.orc) {
+    hideLoading();
+    setSyncStatus('online');
+    renderPage('dashboard');
+  }
+}
+
+function iniciarListeners() {
+  document.getElementById('loading-status').textContent = 'Carregando dados...';
+
+  unsubClientes = onSnapshot(query(collection(db,'clientes'),orderBy('criadoEm','desc')), snap => {
+    clientes = snap.docs.map(d=>({id:d.id,...d.data()}));
+    loaded.c = true; checkLoaded(); renderClientes(); renderDashboard();
+  }, e=>{console.error(e);loaded.c=true;checkLoaded();});
+
+  unsubOrdens = onSnapshot(query(collection(db,'ordens'),orderBy('criadoEm','desc')), snap => {
+    ordens = snap.docs.map(d=>({id:d.id,...d.data()}));
+    loaded.o = true; checkLoaded(); renderPage(paginaAtual);
+  }, e=>{console.error(e);loaded.o=true;checkLoaded();});
+
+  unsubOrcamentos = onSnapshot(query(collection(db,'orcamentos'),orderBy('criadoEm','desc')), snap => {
+    orcamentos = snap.docs.map(d=>({id:d.id,...d.data()}));
+    loaded.orc = true; checkLoaded(); renderOrcamentos();
+  }, e=>{console.error(e);loaded.orc=true;checkLoaded();});
+
+  onSnapshot(query(collection(db,'usuarios'),orderBy('criadoEm','desc')), snap => {
+    usuariosCad = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderUsuarios();
+  }, ()=>{});
+}
+
+function pararListeners() {
+  if(unsubClientes) unsubClientes();
+  if(unsubOrdens) unsubOrdens();
+  if(unsubOrcamentos) unsubOrcamentos();
+  loaded.c=loaded.o=loaded.orc=false;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+const isAdmin = () => perfilAtual === 'admin';
+const getCliente = id => clientes.find(c=>c.id===id)||{nome:'—',tel:''};
+const fmtM = v => 'R$ '+(parseFloat(v)||0).toFixed(2).replace('.',',');
+const fmtD = d => {if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;};
+const diasAb = d => {if(!d)return 0;const h=new Date();h.setHours(0,0,0,0);return Math.max(0,Math.floor((h-new Date(d+'T00:00:00'))/86400000));};
+const diasPrazo = p => {if(!p)return null;const h=new Date();h.setHours(0,0,0,0);return Math.floor((new Date(p+'T00:00:00')-h)/86400000);};
+function prazoHTML(p){if(!p)return'—';const d=diasPrazo(p);if(d<0)return`<span class="prazo-atrasado">⚠️ ${fmtD(p)} (${Math.abs(d)}d atraso)</span>`;if(d===0)return`<span class="prazo-alerta">🔔 Hoje</span>`;if(d<=2)return`<span class="prazo-alerta">⏰ ${fmtD(p)} (${d}d)</span>`;return`<span class="prazo-ok">${fmtD(p)} (${d}d)</span>`;}
+function diasBadge(n){let c='dias-ok';if(n>30)c='dias-critico';else if(n>15)c='dias-alto';else if(n>7)c='dias-medio';return`<span class="diasbadge ${c}">${n}d</span>`;}
+function sbadge(s){const m={'Aguardando':'status-aguardando','Aprovado':'status-aprovado','Em Execução':'status-execucao','Pronto':'status-pronto','Entregue':'status-entregue','Cancelado':'status-cancelado','Pendente':'status-aguardando','Recusado':'status-cancelado'};return`<span class="status ${m[s]||''}">${s}</span>`;}
+function notif(msg,err=false){const n=document.getElementById('notif');n.textContent=msg;n.style.background=err?'var(--vermelho)':'var(--verde-escuro)';n.style.display='block';setTimeout(()=>n.style.display='none',2800);}
+function setBtnLoad(id,v,label){const b=document.getElementById(id);if(!b)return;b.disabled=v;b.innerHTML=v?'<span class="spinner"></span> Salvando...':label;}
+window.abrirModal = id => document.getElementById(id).classList.add('open');
+window.fecharModal = id => document.getElementById(id).classList.remove('open');
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});
+window.calcTotal = () => {const mo=parseFloat(document.getElementById('os-mo').value)||0,pc=parseFloat(document.getElementById('os-pecas').value)||0;document.getElementById('os-total').textContent=fmtM(mo+pc);};
+function valorCell(v){return isAdmin()?`<td>${fmtM(v)}</td>`:`<td style="display:none"></td>`;}
+
+// ── NAVEGAÇÃO ─────────────────────────────────────────────────
+window.showPage = function(p) {
+  // Bloquear acesso a páginas admin para técnico
+  if (!isAdmin() && ['relatorio','usuarios'].includes(p)) { notif('Acesso restrito ao administrador.',true); return; }
+  paginaAtual = p;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes(`'${p}'`))b.classList.add('active');});
+  const titles={dashboard:'📊 Dashboard',clientes:'👥 Clientes',ordens:'📋 Ordens de Serviço',orcamentos:'💰 Orçamentos',execucao:'⚙️ Em Execução',prazos:'📅 Prazos & Agenda',relatorio:'📈 Relatórios',usuarios:'👤 Usuários'};
+  document.getElementById('page-title').textContent = titles[p]||p;
+  const acts = document.getElementById('topbar-actions');
+  const badge = document.getElementById('perfil-badge').outerHTML;
+  acts.innerHTML = badge;
+  if(p==='clientes')acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>`;
+  else if(p==='ordens')acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalOS()">➕ Nova OS</button>`;
+  else if(p==='orcamentos'&&isAdmin())acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalOrcamento()">➕ Novo Orçamento</button>`;
+  renderPage(p);
+};
+
+function renderPage(p){
+  if(p==='dashboard')renderDashboard();
+  else if(p==='clientes')renderClientes();
+  else if(p==='ordens')renderOrdens();
+  else if(p==='orcamentos')renderOrcamentos();
+  else if(p==='execucao')renderExecucao();
+  else if(p==='prazos')renderPrazos();
+  else if(p==='relatorio'&&isAdmin())renderRelatorio();
+  else if(p==='usuarios'&&isAdmin())renderUsuarios();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard() {
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const abertos=ordens.filter(o=>!['Entregue','Cancelado'].includes(o.status)).length;
+  const exec=ordens.filter(o=>o.status==='Em Execução').length;
+  const prontos=ordens.filter(o=>o.status==='Pronto').length;
+  const atrasados=ordens.filter(o=>!['Entregue','Cancelado'].includes(o.status)&&o.prazo&&new Date(o.prazo+'T00:00:00')<hoje).length;
+  const receita=ordens.filter(o=>o.status==='Entregue').reduce((a,b)=>a+(b.maoObra||0)+(b.pecas||0),0);
+
+  let statsHTML = `
+    <div class="stat-card"><div class="stat-icon verde">📋</div><div><div class="stat-val">${ordens.length}</div><div class="stat-label">Total de OS's</div></div></div>
+    <div class="stat-card"><div class="stat-icon azul">🔄</div><div><div class="stat-val">${abertos}</div><div class="stat-label">Em Aberto</div></div></div>
+    <div class="stat-card"><div class="stat-icon laranja">⚙️</div><div><div class="stat-val">${exec}</div><div class="stat-label">Em Execução</div></div></div>
+    <div class="stat-card"><div class="stat-icon verde">✅</div><div><div class="stat-val">${prontos}</div><div class="stat-label">Prontos p/ Entrega</div></div></div>
+    <div class="stat-card"><div class="stat-icon vermelho">⚠️</div><div><div class="stat-val">${atrasados}</div><div class="stat-label">Atrasados</div></div></div>`;
+  if(isAdmin()) statsHTML += `<div class="stat-card admin-only"><div class="stat-icon verde">💰</div><div><div class="stat-val">R$${receita.toFixed(0)}</div><div class="stat-label">Receita Realizada</div></div></div>`;
+  document.getElementById('stats-grid').innerHTML = statsHTML;
+  document.getElementById('badge-ordens').textContent = abertos;
+
+  const criticos=ordens.filter(o=>!['Entregue','Cancelado'].includes(o.status)&&o.prazo&&diasPrazo(o.prazo)<=3);
+  document.getElementById('dash-prazos').innerHTML = criticos.length===0
+    ?'<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Nenhum prazo crítico</div></div>'
+    :criticos.map(o=>{const c=getCliente(o.clienteId),d=diasPrazo(o.prazo);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--cinza-medio)"><div><strong>${o.numero||'OS'}</strong> – ${c.nome}<br><small style="color:var(--cinza-texto)">${o.aparelho}</small></div><div>${d<0?`<span style="color:var(--vermelho);font-weight:700">Atrasado ${Math.abs(d)}d</span>`:d===0?`<span style="color:var(--amarelo);font-weight:700">Hoje!</span>`:`<span style="color:#b45309;font-weight:700">${d}d restantes</span>`}</div></div>`;}).join('');
+
+  document.getElementById('dash-atividades').innerHTML=`<ul class="timeline">${ordens.slice(0,5).map(o=>{const c=getCliente(o.clienteId);return`<li class="tl-item"><div class="tl-dot">🔧</div><div class="tl-content"><div class="tl-title">${c.nome}</div><div class="tl-meta">${o.aparelho} · ${sbadge(o.status)}</div></div></li>`;}).join('')}</ul>`;
+
+  document.getElementById('dash-ordens').innerHTML = ordens.slice(0,8).map(o=>{
+    const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);
+    return`<tr><td><strong>${o.numero||'—'}</strong></td><td>${c.nome}</td><td>${o.aparelho}</td><td>${sbadge(o.status)}</td><td>${prazoHTML(o.prazo)}</td>${isAdmin()?`<td>${fmtM(tot)}</td>`:''}</tr>`;
+  }).join('');
+}
+
+// ── CLIENTES ──────────────────────────────────────────────────
+function renderClientes(filtro=''){
+  const lista=filtro?clientes.filter(c=>c.nome?.toLowerCase().includes(filtro.toLowerCase())||c.tel?.includes(filtro)):clientes;
+  const tb=document.getElementById('tabela-clientes');
+  if(!lista.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">Nenhum cliente</div></div></td></tr>`;return;}
+  tb.innerHTML=lista.map((c,i)=>{const n=ordens.filter(o=>o.clienteId===c.id).length;return`<tr><td>${i+1}</td><td><strong>${c.nome}</strong></td><td>${c.tel||'—'}</td><td>${c.cpf||'—'}</td><td>${c.cidade||'—'}</td><td><span class="diasbadge ${n>0?'dias-ok':''}">${n} OS</span></td><td class="td-actions"><button class="btn btn-outline btn-sm" onclick="editarCliente('${c.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="novaOSCliente('${c.id}')">📋 OS</button><button class="btn btn-danger btn-sm" onclick="delCliente('${c.id}')">🗑️</button></td></tr>`;}).join('');
+}
+window.filtrarClientes = v => renderClientes(v);
+window.abrirModalCliente = function(id=null){
+  editCliente=id;
+  document.getElementById('title-cliente').textContent=id?'Editar Cliente':'Novo Cliente';
+  ['nome','tel','cpf','email','cidade','end','obs'].forEach(f=>document.getElementById('c-'+f).value='');
+  if(id){const c=clientes.find(x=>x.id===id);if(c){document.getElementById('c-nome').value=c.nome||'';document.getElementById('c-tel').value=c.tel||'';document.getElementById('c-cpf').value=c.cpf||'';document.getElementById('c-email').value=c.email||'';document.getElementById('c-cidade').value=c.cidade||'';document.getElementById('c-end').value=c.end||'';document.getElementById('c-obs').value=c.obs||'';}}
+  setBtnLoad('btn-save-cliente',false,'💾 Salvar');
+  abrirModal('modal-cliente');
+};
+window.editarCliente = id => abrirModalCliente(id);
+window.salvarCliente = async function(){
+  const nome=document.getElementById('c-nome').value.trim(),tel=document.getElementById('c-tel').value.trim();
+  if(!nome||!tel){notif('Preencha nome e telefone!',true);return;}
+  const obj={nome,tel,cpf:document.getElementById('c-cpf').value.trim(),email:document.getElementById('c-email').value.trim(),cidade:document.getElementById('c-cidade').value.trim(),end:document.getElementById('c-end').value.trim(),obs:document.getElementById('c-obs').value.trim()};
+  setBtnLoad('btn-save-cliente',true);setSyncStatus('syncing');
+  try{if(editCliente)await updateDoc(doc(db,'clientes',editCliente),obj);else{obj.criadoEm=serverTimestamp();await addDoc(collection(db,'clientes'),obj);}notif(editCliente?'✅ Atualizado!':'✅ Cliente cadastrado!');fecharModal('modal-cliente');}
+  catch(e){notif('Erro: '+e.message,true);}
+  setBtnLoad('btn-save-cliente',false,'💾 Salvar');setSyncStatus('online');
+};
+window.delCliente = async function(id){if(!confirm('Confirma exclusão?'))return;try{await deleteDoc(doc(db,'clientes',id));notif('🗑️ Removido.');}catch(e){notif('Erro: '+e.message,true);}};
+window.novaOSCliente = id=>{showPage('ordens');setTimeout(()=>abrirModalOS(null,id),100);};
+
+// ── ORDENS ────────────────────────────────────────────────────
+function popClientes(selId,selVal=null){
+  const s=document.getElementById(selId);s.innerHTML='<option value="">Selecione o cliente...</option>';
+  clientes.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nome+(c.tel?' – '+c.tel:'');if(selVal&&c.id===selVal)o.selected=true;s.appendChild(o);});
+}
+function updTel(){const v=document.getElementById('os-cliente').value;document.getElementById('os-tel').value=v?(getCliente(v).tel||''):'';} 
+document.getElementById('os-cliente').addEventListener('change',updTel);
+
+window.abrirModalOS = function(id=null,preCliente=null){
+  editOS=id;
+  document.getElementById('title-os').textContent=id?'Editar OS':'Nova Ordem de Serviço';
+  popClientes('os-cliente',preCliente||null);
+  const hoje=new Date().toISOString().split('T')[0];
+  const p7=new Date();p7.setDate(p7.getDate()+7);
+  ['os-tecnico','os-tel','os-marca','os-modelo','os-defeito','os-diagnostico','os-mo','os-pecas','os-obs'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});
+  document.getElementById('os-data').value=hoje;
+  document.getElementById('os-prazo').value=p7.toISOString().split('T')[0];
+  document.getElementById('os-aparelho').value='';
+  document.getElementById('os-status').value='Aguardando';
+  document.getElementById('os-status-tec').value='Aguardando';
+  const totalEl=document.getElementById('os-total');if(totalEl)totalEl.textContent='R$ 0,00';
+
+  // Mostrar/ocultar campos por perfil
+  document.querySelectorAll('#modal-os .admin-only').forEach(el=>el.style.display=isAdmin()?'':'none');
+  document.querySelectorAll('#modal-os .hidden-admin').forEach(el=>el.style.display=isAdmin()?'none':'');
+
+  if(id){const o=ordens.find(x=>x.id===id);if(o){
+    document.getElementById('os-data').value=o.data||hoje;
+    document.getElementById('os-prazo').value=o.prazo||'';
+    document.getElementById('os-tecnico').value=o.tecnico||'';
+    document.getElementById('os-aparelho').value=o.aparelho||'';
+    document.getElementById('os-marca').value=o.marca||'';
+    document.getElementById('os-modelo').value=o.modelo||'';
+    document.getElementById('os-defeito').value=o.defeito||'';
+    document.getElementById('os-diagnostico').value=o.diagnostico||'';
+    if(isAdmin()){document.getElementById('os-mo').value=o.maoObra||'';document.getElementById('os-pecas').value=o.pecas||'';}
+    document.getElementById('os-status').value=o.status||'Aguardando';
+    document.getElementById('os-status-tec').value=o.status||'Aguardando';
+    document.getElementById('os-obs').value=o.obs||'';
+    document.getElementById('os-cliente').value=o.clienteId||'';
+    updTel();calcTotal();
+  }}
+  setBtnLoad('btn-save-os',false,'💾 Salvar OS');
+  abrirModal('modal-os');
+};
+
+window.salvarOS = async function(){
+  const clienteId=document.getElementById('os-cliente').value,aparelho=document.getElementById('os-aparelho').value.trim(),defeito=document.getElementById('os-defeito').value.trim();
+  if(!clienteId||!aparelho||!defeito){notif('Preencha cliente, aparelho e defeito!',true);return;}
+  const statusVal = isAdmin() ? document.getElementById('os-status').value : document.getElementById('os-status-tec').value;
+  const obj={clienteId,data:document.getElementById('os-data').value,prazo:document.getElementById('os-prazo').value,tecnico:document.getElementById('os-tecnico').value.trim(),aparelho,marca:document.getElementById('os-marca').value.trim(),modelo:document.getElementById('os-modelo').value.trim(),defeito,diagnostico:document.getElementById('os-diagnostico').value.trim(),status:statusVal,obs:document.getElementById('os-obs').value.trim()};
+  if(isAdmin()){obj.maoObra=parseFloat(document.getElementById('os-mo').value)||0;obj.pecas=parseFloat(document.getElementById('os-pecas').value)||0;}
+  setBtnLoad('btn-save-os',true);setSyncStatus('syncing');
+  try{if(editOS)await updateDoc(doc(db,'ordens',editOS),obj);else{obj.criadoEm=serverTimestamp();obj.numero='OS-'+Date.now().toString().slice(-5);await addDoc(collection(db,'ordens'),obj);}notif(editOS?'✅ OS atualizada!':'✅ OS criada!');fecharModal('modal-os');}
+  catch(e){notif('Erro: '+e.message,true);}
+  setBtnLoad('btn-save-os',false,'💾 Salvar OS');setSyncStatus('online');
+};
+
+function renderOrdens(filtro='',fStatus=''){
+  let lista=[...ordens];
+  if(filtro){const f=filtro.toLowerCase();lista=lista.filter(o=>{const c=getCliente(o.clienteId);return c.nome.toLowerCase().includes(f)||o.aparelho?.toLowerCase().includes(f)||(o.numero||'').toLowerCase().includes(f);});}
+  if(fStatus)lista=lista.filter(o=>o.status===fStatus);
+  const tb=document.getElementById('tabela-ordens');
+  if(!lista.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nenhuma OS</div></div></td></tr>`;return;}
+  tb.innerHTML=lista.map(o=>{const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);return`<tr><td><strong>${o.numero||'—'}</strong></td><td>${fmtD(o.data)}</td><td>${c.nome}</td><td>${o.aparelho}${o.marca?`<br><small style="color:var(--cinza-texto)">${o.marca}</small>`:''}</td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${o.defeito||''}">${o.defeito||'—'}</td><td>${sbadge(o.status)}</td><td>${prazoHTML(o.prazo)}</td>${isAdmin()?`<td>${fmtM(tot)}</td>`:''}<td class="td-actions"><button class="btn btn-outline btn-sm" onclick="verOS('${o.id}')">👁️</button><button class="btn btn-outline btn-sm" onclick="abrirModalOS('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="printOS('${o.id}')">🖨️</button>${isAdmin()?`<button class="btn btn-danger btn-sm" onclick="delOS('${o.id}')">🗑️</button>`:''}</td></tr>`;}).join('');
+}
+window.filtrarOS = v => renderOrdens(v,document.getElementById('filtro-status').value);
+window.filtrarOSStatus = v => renderOrdens(document.getElementById('search-os').value,v);
+window.delOS = async function(id){if(!confirm('Confirma exclusão?'))return;try{await deleteDoc(doc(db,'ordens',id));notif('🗑️ OS removida.');}catch(e){notif('Erro: '+e.message,true);}};
+
+window.verOS = function(id){
+  const o=ordens.find(x=>x.id===id);if(!o)return;
+  const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);
+  currentOSid=id;
+  document.getElementById('ver-os-title').textContent=`${o.numero||'OS'} — ${c.nome}`;
+  document.getElementById('ver-os-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div><label>Cliente</label><p>${c.nome}</p></div><div><label>Telefone</label><p>${c.tel||'—'}</p></div>
+      <div><label>Data Entrada</label><p>${fmtD(o.data)}</p></div><div><label>Prazo</label><p>${prazoHTML(o.prazo)}</p></div>
+      <div><label>Técnico</label><p>${o.tecnico||'—'}</p></div><div><label>Status</label><p>${sbadge(o.status)}</p></div>
+      <div><label>Aparelho</label><p>${o.aparelho}</p></div><div><label>Marca/Modelo</label><p>${o.marca||'—'} ${o.modelo||''}</p></div>
+    </div>
+    <hr style="margin:14px 0;border-color:var(--cinza-medio)">
+    <div style="margin-bottom:10px"><label>Defeito</label><p>${o.defeito}</p></div>
+    <div style="margin-bottom:10px"><label>Diagnóstico</label><p>${o.diagnostico||'Não preenchido'}</p></div>
+    ${isAdmin()?`<hr style="margin:14px 0;border-color:var(--cinza-medio)"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"><div><label>Mão de Obra</label><p>${fmtM(o.maoObra)}</p></div><div><label>Peças</label><p>${fmtM(o.pecas)}</p></div><div><label>Total</label><p style="font-size:17px;font-weight:800;color:var(--verde-medio)">${fmtM(tot)}</p></div></div>`:''}`;
+  abrirModal('modal-ver-os');
+};
+window.printCurrentOS = () => { if(currentOSid) printOS(currentOSid); };
+
+function gerarHTMLComp(o){
+  const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);
+  return`<div class="comp-logo"><div class="comp-logo-icon">🔧</div><div><div class="comp-logo-name">Pai e Filho</div><div class="comp-logo-sub">Assistência Técnica em Eletrodomésticos</div></div></div>
+  <div class="comp-title">Ordem de Serviço – ${o.numero||''}</div>
+  <div class="comp-section"><div class="comp-section-title">Dados do Cliente</div>
+    <div class="comp-row"><strong>Nome:</strong>${c.nome}</div><div class="comp-row"><strong>Telefone:</strong>${c.tel||'—'}</div>
+    ${c.cpf?`<div class="comp-row"><strong>CPF:</strong>${c.cpf}</div>`:''}${c.end?`<div class="comp-row"><strong>Endereço:</strong>${c.end}${c.cidade?', '+c.cidade:''}</div>`:''}
+  </div>
+  <div class="comp-section"><div class="comp-section-title">Dados do Aparelho</div>
+    <div class="comp-row"><strong>Aparelho:</strong>${o.aparelho}</div>
+    ${o.marca?`<div class="comp-row"><strong>Marca:</strong>${o.marca}</div>`:''}
+    ${o.modelo?`<div class="comp-row"><strong>Modelo/Série:</strong>${o.modelo}</div>`:''}
+    <div class="comp-row"><strong>Defeito:</strong>${o.defeito}</div>
+    ${o.diagnostico?`<div class="comp-row"><strong>Diagnóstico:</strong>${o.diagnostico}</div>`:''}
+  </div>
+  <div class="comp-section"><div class="comp-section-title">Serviço</div>
+    <div class="comp-row"><strong>Data Entrada:</strong>${fmtD(o.data)}</div>
+    <div class="comp-row"><strong>Prazo Entrega:</strong>${fmtD(o.prazo)}</div>
+    ${o.tecnico?`<div class="comp-row"><strong>Técnico:</strong>${o.tecnico}</div>`:''}
+    <div class="comp-row"><strong>Status:</strong>${o.status}</div>
+  </div>
+  ${isAdmin()?`<div class="comp-section"><div class="comp-section-title">Valores</div>
+    <table class="comp-table"><thead><tr><th>Item</th><th style="text-align:right">Valor</th></tr></thead>
+    <tbody><tr><td>Mão de Obra</td><td style="text-align:right">${fmtM(o.maoObra)}</td></tr>
+    <tr><td>Peças / Materiais</td><td style="text-align:right">${fmtM(o.pecas)}</td></tr></tbody></table>
+    <div class="comp-total"><span>TOTAL</span><span>${fmtM(tot)}</span></div></div>`:''}
+  ${o.obs?`<div class="comp-section"><div class="comp-section-title">Observações</div><p style="font-size:12px">${o.obs}</p></div>`:''}
+  <div style="margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div style="border-top:1px solid #ccc;padding-top:8px;text-align:center;font-size:12px">Assinatura do Técnico</div>
+    <div style="border-top:1px solid #ccc;padding-top:8px;text-align:center;font-size:12px">Assinatura do Cliente</div>
+  </div>
+  <div class="comp-footer">Pai e Filho Assistência Técnica · Emitido em ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>`;
+}
+
+window.printOS = function(id){
+  const o=ordens.find(x=>x.id===id);if(!o)return;
+  currentOSid=id;
+  document.getElementById('area-comprovante').innerHTML=gerarHTMLComp(o);
+  fecharModal('modal-ver-os');
+  abrirModal('modal-comprovante');
+};
+
+window.imprimirComp = function(){
+  const html=document.getElementById('area-comprovante').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprovante – Pai e Filho</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>:root{--verde-escuro:#1a3a2a;--verde-medio:#2d6a4f;--verde-pale:#d8f3dc;}body{font-family:'Barlow',sans-serif;max-width:640px;margin:0 auto;padding:32px}.comp-logo{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:2px solid #2d6a4f}.comp-logo-icon{width:54px;height:54px;background:#2d6a4f;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px}.comp-logo-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:#1a3a2a;text-transform:uppercase}.comp-logo-sub{font-size:11px;color:#666}.comp-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}.comp-row{display:flex;gap:8px;margin-bottom:7px;font-size:13px}.comp-row strong{min-width:150px}.comp-section{margin-top:18px}.comp-section-title{font-size:10px;font-weight:700;color:#2d6a4f;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #d8f3dc;padding-bottom:4px;margin-bottom:9px}table{width:100%;border-collapse:collapse;font-size:13px}th{background:#d8f3dc;padding:7px 11px;text-align:left;font-size:10px;font-weight:700}td{padding:7px 11px;border-bottom:1px solid #eee}.comp-total{margin-top:10px;background:#d8f3dc;padding:11px 15px;border-radius:8px;display:flex;justify-content:space-between;font-weight:700;font-size:15px;color:#1a3a2a}.comp-footer{margin-top:26px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:12px}@media print{@page{margin:15mm}}</style>
+  </head><body>${html}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),600);
+};
+
+// ── ORÇAMENTOS ────────────────────────────────────────────────
+window.abrirModalOrcamento = function(id=null){
+  if(!isAdmin()){notif('Apenas administradores podem criar orçamentos.',true);return;}
+  editOrc=id;
+  document.getElementById('title-orc').textContent=id?'Editar Orçamento':'Novo Orçamento';
+  popClientes('orc-cliente');
+  document.getElementById('orc-data').value=new Date().toISOString().split('T')[0];
+  ['orc-aparelho','orc-desc','orc-mo','orc-pecas','orc-obs'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('orc-validade').value=7;document.getElementById('orc-status').value='Pendente';
+  if(id){const o=orcamentos.find(x=>x.id===id);if(o){document.getElementById('orc-cliente').value=o.clienteId||'';document.getElementById('orc-data').value=o.data||'';document.getElementById('orc-aparelho').value=o.aparelho||'';document.getElementById('orc-desc').value=o.desc||'';document.getElementById('orc-mo').value=o.maoObra||'';document.getElementById('orc-pecas').value=o.pecas||'';document.getElementById('orc-validade').value=o.validade||7;document.getElementById('orc-status').value=o.status||'Pendente';document.getElementById('orc-obs').value=o.obs||'';}}
+  setBtnLoad('btn-save-orc',false,'💾 Salvar');abrirModal('modal-orcamento');
+};
+
+window.salvarOrcamento = async function(){
+  const clienteId=document.getElementById('orc-cliente').value,desc=document.getElementById('orc-desc').value.trim();
+  if(!clienteId||!desc){notif('Preencha cliente e descrição!',true);return;}
+  const obj={clienteId,data:document.getElementById('orc-data').value,aparelho:document.getElementById('orc-aparelho').value.trim(),desc,maoObra:parseFloat(document.getElementById('orc-mo').value)||0,pecas:parseFloat(document.getElementById('orc-pecas').value)||0,validade:parseInt(document.getElementById('orc-validade').value)||7,status:document.getElementById('orc-status').value,obs:document.getElementById('orc-obs').value.trim()};
+  setBtnLoad('btn-save-orc',true);setSyncStatus('syncing');
+  try{if(editOrc)await updateDoc(doc(db,'orcamentos',editOrc),obj);else{obj.criadoEm=serverTimestamp();obj.numero='ORC-'+Date.now().toString().slice(-5);await addDoc(collection(db,'orcamentos'),obj);}notif(editOrc?'✅ Atualizado!':'✅ Orçamento criado!');fecharModal('modal-orcamento');}
+  catch(e){notif('Erro: '+e.message,true);}
+  setBtnLoad('btn-save-orc',false,'💾 Salvar');setSyncStatus('online');
+};
+
+function renderOrcamentos(){
+  const tb=document.getElementById('tabela-orcamentos');
+  if(!orcamentos.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">Nenhum orçamento</div></div></td></tr>`;return;}
+  tb.innerHTML=orcamentos.map(o=>{const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);return`<tr><td>${o.numero||'—'}</td><td>${fmtD(o.data)}</td><td>${c.nome}</td><td>${o.aparelho||'—'}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc}</td>${isAdmin()?`<td><strong>${fmtM(tot)}</strong></td>`:''}<td>${sbadge(o.status)}</td><td class="td-actions">${isAdmin()?`<button class="btn btn-outline btn-sm" onclick="printOrc('${o.id}')">🖨️</button><button class="btn btn-outline btn-sm" onclick="abrirModalOrcamento('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="orcToOS('${o.id}')">📋 OS</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑️</button>`:''}</td></tr>`;}).join('');
+}
+window.delOrc = async function(id){if(!confirm('Excluir?'))return;try{await deleteDoc(doc(db,'orcamentos',id));notif('🗑️ Removido.');}catch(e){notif('Erro: '+e.message,true);}};
+window.orcToOS = async function(id){
+  const o=orcamentos.find(x=>x.id===id);if(!o)return;
+  const obj={clienteId:o.clienteId,data:new Date().toISOString().split('T')[0],prazo:'',tecnico:'',aparelho:o.aparelho||'',marca:'',modelo:'',defeito:o.desc,diagnostico:'',maoObra:o.maoObra||0,pecas:o.pecas||0,status:'Aprovado',obs:'Gerado de '+o.numero,criadoEm:serverTimestamp(),numero:'OS-'+Date.now().toString().slice(-5)};
+  setSyncStatus('syncing');
+  try{await addDoc(collection(db,'ordens'),obj);await updateDoc(doc(db,'orcamentos',id),{status:'Aprovado'});notif('✅ OS criada!');showPage('ordens');}catch(e){notif('Erro: '+e.message,true);}
+  setSyncStatus('online');
+};
+window.printOrc = function(id){
+  const o=orcamentos.find(x=>x.id===id);if(!o)return;
+  const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);
+  const vd=new Date((o.data||new Date().toISOString().split('T')[0])+'T00:00:00');vd.setDate(vd.getDate()+(o.validade||7));
+  document.getElementById('area-comprovante').innerHTML=`
+    <div class="comp-logo"><div class="comp-logo-icon">🔧</div><div><div class="comp-logo-name">Pai e Filho</div><div class="comp-logo-sub">Assistência Técnica</div></div></div>
+    <div class="comp-title">Orçamento – ${o.numero||''}</div>
+    <div class="comp-section"><div class="comp-section-title">Cliente</div><div class="comp-row"><strong>Nome:</strong>${c.nome}</div><div class="comp-row"><strong>Telefone:</strong>${c.tel||'—'}</div></div>
+    <div class="comp-section"><div class="comp-section-title">Serviço</div><div class="comp-row"><strong>Aparelho:</strong>${o.aparelho||'—'}</div><div class="comp-row"><strong>Descrição:</strong>${o.desc}</div>${o.obs?`<div class="comp-row"><strong>Obs:</strong>${o.obs}</div>`:''}</div>
+    <div class="comp-section"><div class="comp-section-title">Valores</div>
+      <table class="comp-table"><thead><tr><th>Item</th><th style="text-align:right">Valor</th></tr></thead><tbody><tr><td>Mão de Obra</td><td style="text-align:right">${fmtM(o.maoObra)}</td></tr><tr><td>Peças</td><td style="text-align:right">${fmtM(o.pecas)}</td></tr></tbody></table>
+      <div class="comp-total"><span>TOTAL</span><span>${fmtM(tot)}</span></div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:#666"><strong>Data:</strong> ${fmtD(o.data)} &nbsp;|&nbsp; <strong>Válido até:</strong> ${vd.toLocaleDateString('pt-BR')}</div>
+    <div style="margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:20px"><div style="border-top:1px solid #ccc;padding-top:8px;text-align:center;font-size:12px">Assinatura do Técnico</div><div style="border-top:1px solid #ccc;padding-top:8px;text-align:center;font-size:12px">Aprovação do Cliente</div></div>
+    <div class="comp-footer">Pai e Filho Assistência Técnica · Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>`;
+  abrirModal('modal-comprovante');
+};
+
+// ── EXECUÇÃO ──────────────────────────────────────────────────
+function renderExecucao(){
+  const tb=document.getElementById('tabela-execucao');
+  const lista=ordens.filter(o=>['Em Execução','Aprovado'].includes(o.status));
+  if(!lista.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">⚙️</div><div class="empty-title">Nenhum serviço em execução</div></div></td></tr>`;return;}
+  tb.innerHTML=lista.map(o=>{const c=getCliente(o.clienteId),dias=diasAb(o.data);return`<tr><td><strong>${o.numero||'—'}</strong></td><td>${c.nome}</td><td>${o.aparelho}${o.marca?`<br><small>${o.marca}</small>`:''}</td><td>${o.tecnico||'—'}</td><td>${fmtD(o.data)}</td><td>${prazoHTML(o.prazo)}</td><td>${diasBadge(dias)}</td><td class="td-actions"><button class="btn btn-outline btn-sm" onclick="abrirModalOS('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="printOS('${o.id}')">🖨️</button></td></tr>`;}).join('');
+}
+
+// ── PRAZOS ────────────────────────────────────────────────────
+function renderPrazos(){
+  const ativas=ordens.filter(o=>!['Entregue','Cancelado'].includes(o.status));
+  let at=0,hj=0,sm=0,ok=0;
+  ativas.forEach(o=>{if(!o.prazo){ok++;return;}const d=diasPrazo(o.prazo);if(d<0)at++;else if(d===0)hj++;else if(d<=7)sm++;else ok++;});
+  document.getElementById('stat-atrasados').textContent=at;document.getElementById('stat-hoje').textContent=hj;document.getElementById('stat-semana').textContent=sm;document.getElementById('stat-ok').textContent=ok;
+  const sorted=[...ativas].sort((a,b)=>{const da=diasPrazo(a.prazo),db=diasPrazo(b.prazo);if(da===null)return 1;if(db===null)return -1;return da-db;});
+  const tb=document.getElementById('tabela-prazos');
+  if(!sorted.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">Sem OS em aberto</div></div></td></tr>`;return;}
+  tb.innerHTML=sorted.map(o=>{const c=getCliente(o.clienteId),dias=diasAb(o.data),dp=diasPrazo(o.prazo);let sp=`<span class="status status-aprovado">✅ OK</span>`;if(dp!==null){if(dp<0)sp=`<span class="status status-cancelado">⚠️ Atrasado ${Math.abs(dp)}d</span>`;else if(dp===0)sp=`<span class="status status-aguardando">🔔 Hoje</span>`;else if(dp<=2)sp=`<span class="status status-aguardando">⏰ ${dp}d</span>`;else sp=`<span class="status status-aprovado">✅ ${dp}d</span>`;}
+  return`<tr><td><strong>${o.numero||'—'}</strong></td><td>${c.nome}</td><td>${o.aparelho}</td><td>${fmtD(o.data)}</td><td>${fmtD(o.prazo)}</td><td>${diasBadge(dias)}</td><td>${sp}</td><td>${sbadge(o.status)}</td><td class="td-actions"><button class="btn btn-outline btn-sm" onclick="abrirModalOS('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="printOS('${o.id}')">🖨️</button></td></tr>`;}).join('');
+}
+
+// ── RELATÓRIO ─────────────────────────────────────────────────
+function renderRelatorio(){
+  if(!isAdmin())return;
+  const receita=ordens.filter(o=>o.status==='Entregue').reduce((a,b)=>a+(b.maoObra||0)+(b.pecas||0),0);
+  const recTotal=ordens.reduce((a,b)=>a+(b.maoObra||0)+(b.pecas||0),0);
+  document.getElementById('stats-relatorio').innerHTML=`
+    <div class="stat-card"><div class="stat-icon verde">📋</div><div><div class="stat-val">${ordens.length}</div><div class="stat-label">Total OS's</div></div></div>
+    <div class="stat-card"><div class="stat-icon verde">👥</div><div><div class="stat-val">${clientes.length}</div><div class="stat-label">Clientes</div></div></div>
+    <div class="stat-card"><div class="stat-icon azul">💰</div><div><div class="stat-val">R$${receita.toFixed(0)}</div><div class="stat-label">Receita Realizada</div></div></div>
+    <div class="stat-card"><div class="stat-icon laranja">📊</div><div><div class="stat-val">R$${recTotal.toFixed(0)}</div><div class="stat-label">Valor Total</div></div></div>`;
+  const sc={};ordens.forEach(o=>sc[o.status]=(sc[o.status]||0)+1);
+  document.getElementById('relatorio-status').innerHTML=Object.entries(sc).map(([s,n])=>`<div style="background:var(--cinza-claro);border-radius:10px;padding:14px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--verde-escuro)">${n}</div><div>${sbadge(s)}</div></div>`).join('');
+  document.getElementById('tabela-relatorio').innerHTML=ordens.map(o=>{const c=getCliente(o.clienteId);return`<tr><td>${o.numero||'—'}</td><td>${c.nome}</td><td>${o.aparelho}</td><td>${sbadge(o.status)}</td><td>${fmtD(o.data)}</td><td>${fmtM((o.maoObra||0)+(o.pecas||0))}</td></tr>`;}).join('');
+}
+window.exportarCSV = function(){
+  const rows=[['Número','Data','Cliente','Aparelho','Status','Mão de Obra','Peças','Total']];
+  ordens.forEach(o=>{const c=getCliente(o.clienteId);rows.push([o.numero||'',fmtD(o.data),c.nome,o.aparelho,o.status,o.maoObra||0,o.pecas||0,(o.maoObra||0)+(o.pecas||0)]);});
+  const blob=new Blob(['\ufeff'+rows.map(r=>r.join(';')).join('\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='relatorio_paiefilho.csv';a.click();
+};
+
+// ── USUÁRIOS ──────────────────────────────────────────────────
+function renderUsuarios(){
+  if(!isAdmin())return;
+  const tb=document.getElementById('tabela-usuarios');
+  if(!usuariosCad.length){tb.innerHTML=`<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">👤</div><div class="empty-title">Nenhum usuário cadastrado</div></div></td></tr>`;return;}
+  tb.innerHTML=usuariosCad.map(u=>`<tr><td>${u.email||'—'}</td><td>${u.nome||'—'}</td><td>${u.perfil==='admin'?'<span class="perfil-badge perfil-admin">👑 Admin</span>':'<span class="perfil-badge perfil-tecnico">🔧 Técnico</span>'}</td><td class="td-actions"><button class="btn btn-outline btn-sm" onclick="editarUsuario('${u.id}')">✏️</button></td></tr>`).join('');
+}
+
+window.abrirModalUsuario = function(id=null){
+  editUsuario=id;
+  document.getElementById('title-usuario').textContent=id?'Editar Usuário':'Adicionar Usuário';
+  document.getElementById('u-email').value='';document.getElementById('u-nome').value='';document.getElementById('u-perfil').value='tecnico';
+  if(id){const u=usuariosCad.find(x=>x.id===id);if(u){document.getElementById('u-email').value=u.email||'';document.getElementById('u-nome').value=u.nome||'';document.getElementById('u-perfil').value=u.perfil||'tecnico';}}
+  setBtnLoad('btn-save-usuario',false,'💾 Salvar');
+  abrirModal('modal-usuario');
+};
+window.editarUsuario = id => abrirModalUsuario(id);
+
+window.salvarUsuario = async function(){
+  const email=document.getElementById('u-email').value.trim(),nome=document.getElementById('u-nome').value.trim(),perfil=document.getElementById('u-perfil').value;
+  if(!email){notif('Preencha o e-mail!',true);return;}
+  const obj={email,nome:nome||email.split('@')[0],perfil};
+  setBtnLoad('btn-save-usuario',true);
+  try{
+    if(editUsuario){await updateDoc(doc(db,'usuarios',editUsuario),obj);notif('✅ Usuário atualizado!');}
+    else{obj.criadoEm=serverTimestamp();await addDoc(collection(db,'usuarios'),obj);notif('✅ Usuário adicionado!');}
+    fecharModal('modal-usuario');
+  }catch(e){notif('Erro: '+e.message,true);}
+  setBtnLoad('btn-save-usuario',false,'💾 Salvar');
+};
+</script>
+</body>
+</html>
