@@ -19,8 +19,9 @@
   body{font-family:'Barlow',sans-serif;background:var(--verde-bg);color:var(--cinza-dark);min-height:100vh;display:flex;}
 
   /* ── LOADING ── */
-  #loading-screen{position:fixed;inset:0;background:var(--verde-escuro);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
+  #loading-screen{position:fixed;inset:0;background:var(--verde-escuro);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s;}
   #loading-screen.hide{opacity:0;pointer-events:none;}
+  #loading-screen[style*="display:none"]{display:none!important;}
   .loading-logo{width:72px;height:72px;background:var(--verde-vivo);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;}
   .loading-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:2px;}
   .loading-sub{color:var(--verde-mint);font-size:13px;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
@@ -31,7 +32,7 @@
 
   /* ── LOGIN ── */
   #login-screen{position:fixed;inset:0;background:var(--verde-escuro);display:none;align-items:center;justify-content:center;z-index:8000;}
-  #login-screen.show{display:flex;}
+  #login-screen.show{display:flex!important;}
   .login-box{background:#fff;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);text-align:center;}
   .login-logo{width:64px;height:64px;background:var(--verde-vivo);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;}
   .login-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:1px;}
@@ -208,7 +209,7 @@
 <div id="loading-screen">
   <div class="loading-logo">🔧</div>
   <div class="loading-title">Pai e Filho</div>
-  <div class="loading-sub">Assistência Técnica BH</div>
+  <div class="loading-sub">Assistência Técnica</div>
   <div class="loading-bar"><div class="loading-bar-fill"></div></div>
   <div class="loading-status" id="loading-status">Verificando autenticação...</div>
 </div>
@@ -219,10 +220,9 @@
     <div class="login-logo">🔧</div>
     <div class="login-title">Pai e Filho</div>
     <div class="login-sub">Assistência Técnica · Acesso Restrito</div>
-    <div class="login-sub">Desenvolvido por Ztech - www.ztech.website</div>
     <div class="login-field">
       <label>E-mail</label>
-      <input type="email" id="login-email" placeholder="usuario@email.com" autocomplete="email">
+      <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email">
     </div>
     <div class="login-field">
       <label>Senha</label>
@@ -526,6 +526,24 @@
   </div>
 </div>
 
+<script>
+// Controle de loading FORA do módulo Firebase
+var _appPronto = false;
+window._mostrarLogin = function() {
+  if (_appPronto) return;
+  var ls = document.getElementById('loading-screen');
+  if (ls) { ls.style.cssText += 'opacity:0!important;display:none!important;'; }
+  var login = document.getElementById('login-screen');
+  if (login) login.classList.add('show');
+};
+window._mostrarApp = function() {
+  _appPronto = true;
+  var ls = document.getElementById('loading-screen');
+  if (ls) { ls.style.cssText += 'opacity:0!important;display:none!important;'; }
+};
+// Timeout absoluto: 6 segundos
+setTimeout(window._mostrarLogin, 6000);
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -551,20 +569,11 @@ let paginaAtual='dashboard';
 const loaded={c:false,o:false,orc:false};
 let unsubClientes=null, unsubOrdens=null, unsubOrcamentos=null;
 
-// Timeout de seguranca: se Firebase demorar >5s, mostra login
-let authResolvido = false;
-function mostrarLogin() {
-  if (authResolvido) return; // Auth já resolveu, não interfere
-  var ls = document.getElementById('loading-screen');
-  if (ls) { ls.style.transition='none'; ls.style.opacity='0'; ls.style.display='none'; }
-  var login = document.getElementById('login-screen');
-  if (login) login.classList.add('show');
-}
-setTimeout(mostrarLogin, 5000);
+// Timeout gerenciado pelo script externo (window._mostrarLogin)
 
 // ── AUTH ──────────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
-  authResolvido = true;
+  window._appPronto = true;
   console.log('[Auth] estado:', user ? 'logado: ' + user.email : 'nao logado');
   if (user) {
     emailAtual = user.email;
@@ -576,7 +585,7 @@ onAuthStateChanged(auth, async user => {
   } else {
     console.log('[Auth] sem usuario, mostrando login');
     pararListeners();
-    mostrarLogin();
+    window._mostrarLogin();
   }
 });
 
@@ -668,9 +677,7 @@ function setSyncStatus(s) {
 }
 
 function hideLoading() {
-  const ls = document.getElementById('loading-screen');
-  ls.classList.add('hide');
-  setTimeout(() => ls.style.display='none', 500);
+  window._mostrarApp();
 }
 
 function setLoadingMsg(msg) {
