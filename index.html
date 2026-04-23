@@ -32,7 +32,6 @@
 
   /* ── LOGIN ── */
   #login-screen{position:fixed;inset:0;background:var(--verde-escuro);display:none;align-items:center;justify-content:center;z-index:8000;}
-  #login-screen.show{display:flex!important;}
   .login-box{background:#fff;border-radius:24px;padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);text-align:center;}
   .login-logo{width:64px;height:64px;background:var(--verde-vivo);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;}
   .login-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--verde-escuro);text-transform:uppercase;letter-spacing:1px;}
@@ -527,27 +526,30 @@
 </div>
 
 <script>
-// Controle de loading FORA do módulo Firebase
-var _appPronto = false;
-window._mostrarLogin = function() {
-  if (_appPronto) return;
-  var ls = document.getElementById('loading-screen');
-  if (ls) { ls.style.cssText += 'opacity:0!important;display:none!important;'; }
-  var login = document.getElementById('login-screen');
-  if (login) login.classList.add('show');
+// ── CONTROLE DE LOADING (fora do módulo ES6) ──────────────────
+window.__authOk = false;
+window.__esconderLoading = function() {
+  document.getElementById('loading-screen').style.display = 'none';
 };
-window._mostrarApp = function() {
-  _appPronto = true;
-  var ls = document.getElementById('loading-screen');
-  if (ls) { ls.style.cssText += 'opacity:0!important;display:none!important;'; }
+window.__mostrarLogin = function() {
+  if (window.__authOk) return;
+  window.__esconderLoading();
+  var el = document.getElementById('login-screen');
+  if (el) { el.style.display = 'flex'; }
 };
-// Timeout absoluto: 6 segundos
-setTimeout(window._mostrarLogin, 6000);
+window.__mostrarApp = function() {
+  window.__authOk = true;
+  window.__esconderLoading();
+  var el = document.getElementById('login-screen');
+  if (el) { el.style.display = 'none'; }
+};
+// Se Firebase não responder em 7s, mostra login de qualquer forma
+setTimeout(function() { window.__mostrarLogin(); }, 7000);
 </script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // ── CONFIG ────────────────────────────────────────────────────
 const app = initializeApp({
@@ -573,19 +575,23 @@ let unsubClientes=null, unsubOrdens=null, unsubOrcamentos=null;
 
 // ── AUTH ──────────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
-  window._appPronto = true;
-  console.log('[Auth] estado:', user ? 'logado: ' + user.email : 'nao logado');
+  window.__authOk = false;
   if (user) {
     emailAtual = user.email;
-    document.getElementById('loading-status').textContent = 'Carregando perfil...';
-    try { await carregarPerfil(user.uid, user.email); } catch(e) { console.error('[Auth] erro perfil:', e); perfilAtual = 'tecnico'; nomeAtual = user.email.split('@')[0]; }
-    document.getElementById('login-screen').classList.remove('show');
+    try {
+      document.getElementById('loading-status').textContent = 'Carregando perfil...';
+      await carregarPerfil(user.uid, user.email);
+    } catch(e) {
+      perfilAtual = 'tecnico';
+      nomeAtual = user.email.split('@')[0];
+    }
     aplicarPerfil();
     iniciarListeners();
+    window.__mostrarApp();
+    document.getElementById('login-screen').style.display = 'none';
   } else {
-    console.log('[Auth] sem usuario, mostrando login');
     pararListeners();
-    window._mostrarLogin();
+    window.__mostrarLogin();
   }
 });
 
@@ -677,7 +683,7 @@ function setSyncStatus(s) {
 }
 
 function hideLoading() {
-  window._mostrarApp();
+  window.__mostrarApp();
 }
 
 function setLoadingMsg(msg) {
