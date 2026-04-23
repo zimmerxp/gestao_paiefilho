@@ -179,6 +179,19 @@
   .comp-total{margin-top:10px;background:var(--verde-pale);padding:11px 15px;border-radius:8px;display:flex;justify-content:space-between;font-weight:700;font-size:15px;color:var(--verde-escuro);}
   .comp-footer{margin-top:26px;font-size:11px;color:var(--cinza-texto);text-align:center;border-top:1px solid var(--cinza-medio);padding-top:12px;}
 
+  /* ── STAT CARD CLICÁVEL ── */
+  .stat-card.clickable{cursor:pointer;} .stat-card.clickable:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);outline:2px solid var(--verde-medio);}
+  .stat-card.active-filter{outline:3px solid var(--verde-medio);background:var(--verde-pale);}
+  .filter-bar{display:flex;align-items:center;gap:10px;padding:10px 22px;background:var(--verde-pale);border-bottom:1px solid var(--verde-mint);font-size:13px;font-weight:600;color:var(--verde-escuro);}
+  .filter-bar button{background:var(--verde-medio);color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+  /* ── TROCA STATUS RÁPIDO ── */
+  .status-btn{cursor:pointer;position:relative;} .status-btn:hover{opacity:.85;}
+  .status-menu{position:absolute;top:110%;left:0;background:#fff;border-radius:10px;box-shadow:var(--shadow-lg);z-index:500;min-width:160px;overflow:hidden;display:none;}
+  .status-menu.open{display:block;}
+  .status-menu-item{padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;}
+  .status-menu-item:hover{background:var(--verde-pale);}
+  /* ── COMPARTILHAR ── */
+  .btn-share{background:#e8f4f8;color:var(--azul);} .btn-share:hover{background:var(--azul);color:#fff;}
   @media(max-width:900px){
     #sidebar{width:58px;}
     .logo-title,.logo-sub,.user-info,.sync-status,.nav-btn span,.nav-section,.badge,.sidebar-bottom .empresa-info{display:none;}
@@ -247,6 +260,11 @@
   </nav>
   <div class="sidebar-bottom">
     <button class="btn-logout" onclick="fazerLogout()"><span>🚪</span><span>Sair</span></button>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);font-size:10px;color:rgba(255,255,255,0.25);line-height:1.7">
+      Desenvolvido por<br>
+      <a href="https://ztech.website" target="_blank" style="color:rgba(116,198,157,0.6);text-decoration:none;font-weight:600">ZTech</a>
+      &nbsp;·&nbsp; v2.1.0
+    </div>
   </div>
 </nav>
 
@@ -267,7 +285,14 @@
         <div class="card"><div class="card-header"><div class="card-title">⚠️ Prazos Críticos</div></div><div id="dash-prazos" style="padding:14px"></div></div>
         <div class="card"><div class="card-header"><div class="card-title">🕐 Últimas Atividades</div></div><div id="dash-atividades" style="padding:14px"></div></div>
       </div>
-      <div class="card"><div class="card-header"><div class="card-title">📋 Ordens Recentes</div></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Ordens Recentes</div>
+          <div id="dash-filtro-bar" style="display:none" class="filter-bar">
+            Filtrando: <span id="dash-filtro-label"></span>
+            <button onclick="limparFiltroDash()">✕ Limpar</button>
+          </div>
+        </div>
         <table><thead><tr><th>#OS</th><th>Cliente</th><th>Aparelho</th><th>Status</th><th>Prazo</th><th class="admin-only">Valor</th></tr></thead><tbody id="dash-ordens"></tbody></table>
       </div>
     </div>
@@ -467,7 +492,11 @@
 <div class="modal-overlay" id="modal-comprovante">
   <div class="modal" style="max-width:700px"><div class="modal-header"><div class="modal-title">🖨️ Comprovante</div><button class="modal-close" onclick="fecharModal('modal-comprovante')">✕</button></div>
     <div class="modal-body"><div id="area-comprovante"></div></div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-comprovante')">Fechar</button><button class="btn btn-primary" onclick="imprimirComp()">🖨️ Imprimir</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-comprovante')">Fechar</button>
+      <button class="btn btn-share" onclick="compartilharViaEmail()">📧 Enviar por E-mail</button>
+      <button class="btn btn-primary" onclick="imprimirComp()">🖨️ Imprimir</button>
+    </div>
   </div>
 </div>
 
@@ -475,7 +504,24 @@
 <div class="modal-overlay" id="modal-ver-os">
   <div class="modal" style="max-width:700px"><div class="modal-header"><div class="modal-title" id="ver-os-title">OS</div><button class="modal-close" onclick="fecharModal('modal-ver-os')">✕</button></div>
     <div class="modal-body" id="ver-os-body"></div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="fecharModal('modal-ver-os')">Fechar</button><button class="btn btn-primary" onclick="printCurrentOS()">🖨️ Imprimir</button></div>
+    <div class="modal-footer" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="fecharModal('modal-ver-os')">Fechar</button>
+        <select id="status-rapido" style="padding:7px 11px;border-radius:8px;border:1.5px solid var(--cinza-medio);font-size:13px;font-weight:600" onchange="trocarStatusRapido(this.value)">
+          <option value="">🔄 Trocar Status...</option>
+          <option value="Aguardando">⏳ Aguardando</option>
+          <option value="Aprovado">✅ Aprovado</option>
+          <option value="Em Execução">⚙️ Em Execução</option>
+          <option value="Pronto">🎉 Pronto</option>
+          <option value="Entregue">📦 Entregue</option>
+          <option value="Cancelado">❌ Cancelado</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-share btn-sm" onclick="compartilharOS()">📤 Compartilhar</button>
+        <button class="btn btn-primary btn-sm" onclick="printCurrentOS()">🖨️ Imprimir</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -504,17 +550,20 @@ let paginaAtual='dashboard';
 const loaded={c:false,o:false,orc:false};
 let unsubClientes=null, unsubOrdens=null, unsubOrcamentos=null;
 
-// Timeout de seguranca: se Firebase demorar >3s, mostra login
+// Timeout de seguranca: se Firebase demorar >5s, mostra login
+let authResolvido = false;
 function mostrarLogin() {
+  if (authResolvido) return; // Auth já resolveu, não interfere
   var ls = document.getElementById('loading-screen');
   if (ls) { ls.style.transition='none'; ls.style.opacity='0'; ls.style.display='none'; }
   var login = document.getElementById('login-screen');
   if (login) login.classList.add('show');
 }
-setTimeout(mostrarLogin, 3000);
+setTimeout(mostrarLogin, 5000);
 
 // ── AUTH ──────────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
+  authResolvido = true;
   console.log('[Auth] estado:', user ? 'logado: ' + user.email : 'nao logado');
   if (user) {
     emailAtual = user.email;
@@ -702,7 +751,7 @@ window.showPage = function(p) {
   acts.innerHTML = badge;
   if(p==='clientes')acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>`;
   else if(p==='ordens')acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalOS()">➕ Nova OS</button>`;
-  else if(p==='orcamentos'&&isAdmin())acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalOrcamento()">➕ Novo Orçamento</button>`;
+  else if(p==='orcamentos')acts.innerHTML+=`<button class="btn btn-primary" onclick="abrirModalOrcamento()">➕ Novo Orçamento</button>`;
   renderPage(p);
 };
 
@@ -727,11 +776,11 @@ function renderDashboard() {
   const receita=ordens.filter(o=>o.status==='Entregue').reduce((a,b)=>a+(b.maoObra||0)+(b.pecas||0),0);
 
   let statsHTML = `
-    <div class="stat-card"><div class="stat-icon verde">📋</div><div><div class="stat-val">${ordens.length}</div><div class="stat-label">Total de OS's</div></div></div>
-    <div class="stat-card"><div class="stat-icon azul">🔄</div><div><div class="stat-val">${abertos}</div><div class="stat-label">Em Aberto</div></div></div>
-    <div class="stat-card"><div class="stat-icon laranja">⚙️</div><div><div class="stat-val">${exec}</div><div class="stat-label">Em Execução</div></div></div>
-    <div class="stat-card"><div class="stat-icon verde">✅</div><div><div class="stat-val">${prontos}</div><div class="stat-label">Prontos p/ Entrega</div></div></div>
-    <div class="stat-card"><div class="stat-icon vermelho">⚠️</div><div><div class="stat-val">${atrasados}</div><div class="stat-label">Atrasados</div></div></div>`;
+    <div class="stat-card clickable" onclick="filtrarDashPorStatus('abertos',this)"><div class="stat-icon azul">🔄</div><div><div class="stat-val">${abertos}</div><div class="stat-label">Em Aberto</div></div></div>
+    <div class="stat-card clickable" onclick="filtrarDashPorStatus('execucao',this)"><div class="stat-icon laranja">⚙️</div><div><div class="stat-val">${exec}</div><div class="stat-label">Em Execução</div></div></div>
+    <div class="stat-card clickable" onclick="filtrarDashPorStatus('prontos',this)"><div class="stat-icon verde">✅</div><div><div class="stat-val">${prontos}</div><div class="stat-label">Prontos p/ Entrega</div></div></div>
+    <div class="stat-card clickable" onclick="filtrarDashPorStatus('atrasados',this)"><div class="stat-icon vermelho">⚠️</div><div><div class="stat-val">${atrasados}</div><div class="stat-label">Atrasados</div></div></div>
+    <div class="stat-card"><div class="stat-icon verde">📋</div><div><div class="stat-val">${ordens.length}</div><div class="stat-label">Total de OS's</div></div></div>`;
   if(isAdmin()) statsHTML += `<div class="stat-card admin-only"><div class="stat-icon verde">💰</div><div><div class="stat-val">R$${receita.toFixed(0)}</div><div class="stat-label">Receita Realizada</div></div></div>`;
   document.getElementById('stats-grid').innerHTML = statsHTML;
   document.getElementById('badge-ordens').textContent = abertos;
@@ -922,7 +971,6 @@ window.imprimirComp = function(){
 
 // ── ORÇAMENTOS ────────────────────────────────────────────────
 window.abrirModalOrcamento = function(id=null){
-  if(!isAdmin()){notif('Apenas administradores podem criar orçamentos.',true);return;}
   editOrc=id;
   document.getElementById('title-orc').textContent=id?'Editar Orçamento':'Novo Orçamento';
   popClientes('orc-cliente');
@@ -946,7 +994,7 @@ window.salvarOrcamento = async function(){
 function renderOrcamentos(){
   const tb=document.getElementById('tabela-orcamentos');
   if(!orcamentos.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">Nenhum orçamento</div></div></td></tr>`;return;}
-  tb.innerHTML=orcamentos.map(o=>{const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);return`<tr><td>${o.numero||'—'}</td><td>${fmtD(o.data)}</td><td>${c.nome}</td><td>${o.aparelho||'—'}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc}</td>${isAdmin()?`<td><strong>${fmtM(tot)}</strong></td>`:''}<td>${sbadge(o.status)}</td><td class="td-actions">${isAdmin()?`<button class="btn btn-outline btn-sm" onclick="printOrc('${o.id}')">🖨️</button><button class="btn btn-outline btn-sm" onclick="abrirModalOrcamento('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="orcToOS('${o.id}')">📋 OS</button><button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑️</button>`:''}</td></tr>`;}).join('');
+  tb.innerHTML=orcamentos.map(o=>{const c=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);return`<tr><td>${o.numero||'—'}</td><td>${fmtD(o.data)}</td><td>${c.nome}</td><td>${o.aparelho||'—'}</td><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${o.desc}</td>${isAdmin()?`<td><strong>${fmtM(tot)}</strong></td>`:''}<td>${sbadge(o.status)}</td><td class="td-actions"><button class="btn btn-outline btn-sm" onclick="printOrc('${o.id}')">🖨️</button><button class="btn btn-outline btn-sm" onclick="abrirModalOrcamento('${o.id}')">✏️</button><button class="btn btn-outline btn-sm" onclick="orcToOS('${o.id}')">📋 OS</button>${isAdmin()?`<button class="btn btn-danger btn-sm" onclick="delOrc('${o.id}')">🗑️</button>`:''}</td></tr>`;}).join('');
 }
 window.delOrc = async function(id){if(!confirm('Excluir?'))return;try{await deleteDoc(doc(db,'orcamentos',id));notif('🗑️ Removido.');}catch(e){notif('Erro: '+e.message,true);}};
 window.orcToOS = async function(id){
@@ -1010,6 +1058,124 @@ function renderRelatorio(){
   document.getElementById('relatorio-status').innerHTML=Object.entries(sc).map(([s,n])=>`<div style="background:var(--cinza-claro);border-radius:10px;padding:14px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--verde-escuro)">${n}</div><div>${sbadge(s)}</div></div>`).join('');
   document.getElementById('tabela-relatorio').innerHTML=ordens.map(o=>{const c=getCliente(o.clienteId);return`<tr><td>${o.numero||'—'}</td><td>${c.nome}</td><td>${o.aparelho}</td><td>${sbadge(o.status)}</td><td>${fmtD(o.data)}</td><td>${fmtM((o.maoObra||0)+(o.pecas||0))}</td></tr>`;}).join('');
 }
+// ── FILTRO DASHBOARD ─────────────────────────────────────────
+let dashFiltroAtivo = '';
+window.filtrarDashPorStatus = function(status, labelEl) {
+  if (dashFiltroAtivo === status) { limparFiltroDash(); return; }
+  dashFiltroAtivo = status;
+  document.querySelectorAll('.stat-card.clickable').forEach(el => el.classList.remove('active-filter'));
+  if (labelEl) labelEl.closest('.stat-card').classList.add('active-filter');
+  document.getElementById('dash-filtro-bar').style.display = 'flex';
+  document.getElementById('dash-filtro-label').textContent = status;
+  renderDashOrdens(status);
+};
+window.limparFiltroDash = function() {
+  dashFiltroAtivo = '';
+  document.querySelectorAll('.stat-card.clickable').forEach(el => el.classList.remove('active-filter'));
+  document.getElementById('dash-filtro-bar').style.display = 'none';
+  renderDashOrdens('');
+};
+function renderDashOrdens(filtroStatus) {
+  let lista = filtroStatus
+    ? ordens.filter(o => {
+        if (filtroStatus === 'abertos') return !['Entregue','Cancelado'].includes(o.status);
+        if (filtroStatus === 'execucao') return o.status === 'Em Execução';
+        if (filtroStatus === 'prontos') return o.status === 'Pronto';
+        if (filtroStatus === 'atrasados') { const h=new Date();h.setHours(0,0,0,0); return !['Entregue','Cancelado'].includes(o.status)&&o.prazo&&new Date(o.prazo+'T00:00:00')<h; }
+        return o.status === filtroStatus;
+      })
+    : ordens.slice(0, 8);
+  if (!filtroStatus) lista = lista.slice(0, 8);
+  document.getElementById('dash-ordens').innerHTML = lista.map(o => {
+    const cl=getCliente(o.clienteId),tot=(o.maoObra||0)+(o.pecas||0);
+    return`<tr><td><strong>${o.numero||'—'}</strong></td><td>${cl.nome}</td><td>${o.aparelho}</td><td>${sbadge(o.status)}</td><td>${prazoHTML(o.prazo)}</td>${isAdmin()?`<td>${fmtM(tot)}</td>`:''}</tr>`;
+  }).join('') || `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">Nenhuma OS com este status</div></div></td></tr>`;
+}
+
+// ── TROCA STATUS RÁPIDO ───────────────────────────────────────
+window.trocarStatusRapido = async function(novoStatus) {
+  if (!novoStatus || !currentOSid) return;
+  const sel = document.getElementById('status-rapido');
+  setSyncStatus('syncing');
+  try {
+    await updateDoc(doc(db,'ordens',currentOSid), { status: novoStatus });
+    notif('✅ Status atualizado para: ' + novoStatus);
+    // Atualiza o modal
+    const o = ordens.find(x => x.id === currentOSid);
+    if (o) {
+      const bodyEl = document.getElementById('ver-os-body');
+      const statusEl = bodyEl ? bodyEl.querySelector('p:last-of-type') : null;
+    }
+    sel.value = '';
+    fecharModal('modal-ver-os');
+  } catch(e) { notif('Erro: ' + e.message, true); }
+  setSyncStatus('online');
+};
+
+// ── COMPARTILHAR OS ───────────────────────────────────────────
+window.compartilharOS = function() {
+  const o = ordens.find(x => x.id === currentOSid);
+  if (!o) return;
+  const c = getCliente(o.clienteId);
+  const tot = (o.maoObra||0)+(o.pecas||0);
+  const texto = [
+    '🔧 *Pai e Filho Assistência Técnica*',
+    '',
+    `📋 *OS: ${o.numero||'—'}*`,
+    `👤 Cliente: ${c.nome}`,
+    `📞 Telefone: ${c.tel||'—'}`,
+    `🔧 Aparelho: ${o.aparelho}${o.marca?' – '+o.marca:''}`,
+    `❗ Defeito: ${o.defeito}`,
+    o.diagnostico ? `🔍 Diagnóstico: ${o.diagnostico}` : '',
+    `📅 Data Entrada: ${fmtD(o.data)}`,
+    `⏰ Prazo: ${fmtD(o.prazo)}`,
+    `📊 Status: ${o.status}`,
+    isAdmin() ? `💰 Total: ${fmtM(tot)}` : '',
+    o.obs ? `📝 Obs: ${o.obs}` : '',
+    '',
+    '_Pai e Filho Assistência Técnica_'
+  ].filter(Boolean).join('\n');
+
+  if (navigator.share) {
+    navigator.share({ title: `OS ${o.numero||''} – ${c.nome}`, text: texto })
+      .catch(() => {});
+  } else {
+    // Fallback: copia para clipboard
+    navigator.clipboard.writeText(texto).then(() => {
+      notif('📋 Texto da OS copiado! Cole no WhatsApp ou onde quiser.');
+    }).catch(() => {
+      // Fallback final: abre WhatsApp web
+      const url = 'https://wa.me/?text=' + encodeURIComponent(texto);
+      window.open(url, '_blank');
+    });
+  }
+};
+
+window.compartilharViaEmail = function() {
+  const area = document.getElementById('area-comprovante');
+  if (!area) return;
+  const o = currentOSid ? ordens.find(x => x.id === currentOSid) : null;
+  const c = o ? getCliente(o.clienteId) : null;
+  const assunto = o ? `OS ${o.numero||''} – ${c ? c.nome : ''} | Pai e Filho Assistência Técnica` : 'Comprovante – Pai e Filho';
+  const corpo = o ? [
+    'Prezado(a) ' + (c ? c.nome : 'Cliente') + ',',
+    '',
+    'Segue abaixo o resumo da sua Ordem de Serviço:',
+    '',
+    'OS: ' + (o.numero||'—'),
+    'Aparelho: ' + o.aparelho + (o.marca?' – '+o.marca:''),
+    'Defeito: ' + o.defeito,
+    o.diagnostico ? 'Diagnóstico: ' + o.diagnostico : '',
+    'Data Entrada: ' + fmtD(o.data),
+    'Prazo: ' + fmtD(o.prazo),
+    'Status: ' + o.status,
+    '',
+    'Atenciosamente,',
+    'Pai e Filho Assistência Técnica'
+  ].filter(l => l !== null).join('%0D%0A') : '';
+  window.location.href = `mailto:${c&&c.email?c.email:''}?subject=${encodeURIComponent(assunto)}&body=${corpo}`;
+};
+
 window.exportarCSV = function(){
   const rows=[['Número','Data','Cliente','Aparelho','Status','Mão de Obra','Peças','Total']];
   ordens.forEach(o=>{const c=getCliente(o.clienteId);rows.push([o.numero||'',fmtD(o.data),c.nome,o.aparelho,o.status,o.maoObra||0,o.pecas||0,(o.maoObra||0)+(o.pecas||0)]);});
