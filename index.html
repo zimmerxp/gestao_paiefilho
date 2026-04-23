@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a3a2a">
 <title>Pai e Filho – Assistência Técnica</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -148,6 +152,50 @@
   /* ── EXTRAS ── */
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
+  /* ── MOBILE NAV BAR ── */
+  #mobile-nav{
+    display:none;
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--verde-escuro);
+    border-top:1px solid rgba(255,255,255,0.1);
+    z-index:200;
+    padding:6px 0 max(6px, env(safe-area-inset-bottom));
+    box-shadow:0 -4px 20px rgba(0,0,0,0.25);
+  }
+  #mobile-nav .mnav-items{
+    display:flex;justify-content:space-around;align-items:center;
+  }
+  #mobile-nav .mnav-btn{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:none;border:none;color:rgba(255,255,255,0.55);
+    font-family:'Barlow',sans-serif;font-size:10px;font-weight:500;
+    cursor:pointer;padding:6px 8px;border-radius:10px;transition:all .2s;
+    min-width:52px;position:relative;
+  }
+  #mobile-nav .mnav-btn.active{color:#fff;background:rgba(255,255,255,0.1);}
+  #mobile-nav .mnav-btn .micon{font-size:20px;line-height:1;}
+  #mobile-nav .mnav-btn .mbadge{
+    position:absolute;top:2px;right:8px;
+    background:var(--laranja);color:#fff;
+    border-radius:8px;padding:1px 5px;font-size:9px;font-weight:700;
+    display:none;
+  }
+  #mobile-nav .mnav-btn .mbadge.show{display:block;}
+  /* Botão flutuante de nova OS no mobile */
+  #mobile-fab{
+    display:none;
+    position:fixed;bottom:72px;right:16px;
+    width:52px;height:52px;border-radius:50%;
+    background:var(--verde-vivo);color:#fff;
+    border:none;font-size:26px;cursor:pointer;
+    box-shadow:0 4px 16px rgba(82,183,136,0.5);
+    align-items:center;justify-content:center;
+    z-index:199;transition:transform .2s;
+  }
+  #mobile-fab:hover{transform:scale(1.1);}
+  @media(max-width:600px){
+    #mobile-fab{display:flex;}
+  }
   .notif{position:fixed;bottom:24px;right:24px;color:#fff;border-radius:10px;padding:13px 18px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);z-index:9999;display:none;animation:notifIn .3s ease;}
   @keyframes notifIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
   .empty-state{text-align:center;padding:44px 20px;color:var(--cinza-texto);}
@@ -192,13 +240,75 @@
   .status-menu-item:hover{background:var(--verde-pale);}
   /* ── COMPARTILHAR ── */
   .btn-share{background:#e8f4f8;color:var(--azul);} .btn-share:hover{background:var(--azul);color:#fff;}
+  /* ── TABLET ── */
   @media(max-width:900px){
     #sidebar{width:58px;}
-    .logo-title,.logo-sub,.user-info,.sync-status,.nav-btn span,.nav-section,.badge,.sidebar-bottom .empresa-info{display:none;}
+    .logo-title,.logo-sub,.user-info,.sync-status,.nav-btn span,.nav-section,.badge,.sidebar-bottom{display:none;}
     .nav-btn{justify-content:center;padding:11px;}
     #main{margin-left:58px;}
     .form-grid,.form-grid.cols-3{grid-template-columns:1fr;}
     .dashboard-cols{grid-template-columns:1fr!important;}
+  }
+
+  /* ── MOBILE ── */
+  @media(max-width:600px){
+    /* Esconder sidebar lateral completamente */
+    #sidebar{display:none!important;}
+    #main{margin-left:0!important;}
+
+    /* Barra de navegação inferior */
+    #mobile-nav{display:flex!important;}
+
+    /* Topbar mobile */
+    .topbar{padding:0 14px;height:52px;}
+    .topbar-title{font-size:17px;}
+    .topbar-actions .btn span:last-child{display:none;}
+    .topbar-actions .btn{padding:7px 10px;}
+    .perfil-badge{display:none;}
+
+    /* Content */
+    .content{padding:14px 12px 80px;}
+
+    /* Cards */
+    .card-header{padding:12px 14px;gap:8px;}
+    .card-title{font-size:15px;}
+    .search-box input{width:120px;}
+
+    /* Stats */
+    .stats-grid{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+    .stat-card{padding:14px 12px;gap:10px;}
+    .stat-icon{width:38px;height:38px;font-size:18px;border-radius:10px;}
+    .stat-val{font-size:22px;}
+    .stat-label{font-size:10px;}
+
+    /* Tabelas: scroll horizontal */
+    .card{overflow-x:auto;}
+    table{min-width:500px;}
+    th,td{padding:9px 10px;font-size:12px;}
+    .td-actions{gap:3px;}
+    .td-actions .btn{padding:5px 7px;font-size:11px;}
+
+    /* Forms */
+    .form-grid,.form-grid.cols-3{grid-template-columns:1fr;}
+    .dashboard-cols{grid-template-columns:1fr!important;}
+    .separator{font-size:12px;padding:6px 12px;}
+
+    /* Modal fullscreen */
+    .modal-overlay{padding:0;align-items:flex-end;}
+    .modal{max-width:100%!important;max-height:95vh;border-radius:18px 18px 0 0;}
+    .modal-header{padding:16px 18px 12px;}
+    .modal-body{padding:14px 18px;}
+    .modal-footer{padding:12px 18px;gap:8px;}
+    .modal-footer .btn{flex:1;justify-content:center;}
+
+    /* Login */
+    .login-box{border-radius:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px;}
+
+    /* Dashboard cols */
+    .dashboard-cols{gap:12px!important;}
+
+    /* Filter bar */
+    .filter-bar{font-size:12px;padding:8px 14px;}
   }
 </style>
 </head>
@@ -380,6 +490,41 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- MOBILE NAV BAR -->
+<div id="mobile-nav">
+  <div class="mnav-items">
+    <button class="mnav-btn active" id="mnav-dashboard" onclick="showPage('dashboard');setMobileNav('dashboard')">
+      <span class="micon">📊</span><span>Início</span>
+    </button>
+    <button class="mnav-btn" id="mnav-clientes" onclick="showPage('clientes');setMobileNav('clientes')">
+      <span class="micon">👥</span><span>Clientes</span>
+    </button>
+    <button class="mnav-btn" id="mnav-ordens" onclick="showPage('ordens');setMobileNav('ordens')">
+      <span class="micon">📋</span><span>OS</span>
+      <span class="mbadge" id="mbadge-ordens">0</span>
+    </button>
+    <button class="mnav-btn" id="mnav-prazos" onclick="showPage('prazos');setMobileNav('prazos')">
+      <span class="micon">📅</span><span>Prazos</span>
+    </button>
+    <button class="mnav-btn" id="mnav-mais" onclick="toggleMobileMenu()">
+      <span class="micon">☰</span><span>Mais</span>
+    </button>
+  </div>
+</div>
+
+<!-- MOBILE FAB -->
+<button id="mobile-fab" onclick="abrirModalOS()" title="Nova OS">＋</button>
+
+<!-- MOBILE MENU EXTRA -->
+<div id="mobile-menu-extra" style="display:none;position:fixed;bottom:65px;left:0;right:0;background:var(--verde-escuro);border-top:1px solid rgba(255,255,255,0.1);z-index:201;padding:12px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <button onclick="showPage('orcamentos');toggleMobileMenu()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.07);border:none;border-radius:10px;color:#fff;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">💰 Orçamentos</button>
+    <button onclick="showPage('execucao');toggleMobileMenu()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.07);border:none;border-radius:10px;color:#fff;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">⚙️ Execução</button>
+    <button id="mnav-relatorio-btn" onclick="showPage('relatorio');toggleMobileMenu()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.07);border:none;border-radius:10px;color:#fff;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">📈 Relatórios</button>
+    <button onclick="fazerLogout();toggleMobileMenu()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(231,111,81,0.2);border:none;border-radius:10px;color:#e76f51;font-family:'Barlow',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">🚪 Sair</button>
   </div>
 </div>
 
@@ -1227,6 +1372,51 @@ window.salvarUsuario = async function(){
   }catch(e){notif('Erro: '+e.message,true);}
   setBtnLoad('btn-save-usuario',false,'💾 Salvar');
 };
+// ── MOBILE NAV ────────────────────────────────────────────────
+window.setMobileNav = function(p) {
+  document.querySelectorAll('.mnav-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('mnav-' + p);
+  if (el) el.classList.add('active');
+  // Atualizar badge
+  const abertos = ordens.filter(o => !['Entregue','Cancelado'].includes(o.status)).length;
+  const badge = document.getElementById('mbadge-ordens');
+  if (badge) {
+    badge.textContent = abertos;
+    badge.classList.toggle('show', abertos > 0);
+  }
+  // Esconder menu extra se aberto
+  const menu = document.getElementById('mobile-menu-extra');
+  if (menu) menu.style.display = 'none';
+};
+
+window.toggleMobileMenu = function() {
+  const menu = document.getElementById('mobile-menu-extra');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  // Mostrar/ocultar relatórios baseado no perfil
+  const relBtn = document.getElementById('mnav-relatorio-btn');
+  if (relBtn) relBtn.style.display = isAdmin() ? '' : 'none';
+};
+
+// Fechar menu extra ao clicar fora
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobile-menu-extra');
+  const mnavBtn = e.target.closest('#mnav-mais');
+  if (menu && menu.style.display !== 'none' && !mnavBtn && !e.target.closest('#mobile-menu-extra')) {
+    menu.style.display = 'none';
+  }
+});
+
+// Integrar setMobileNav no showPage existente
+const _origShowPage = window.showPage;
+window.showPage = function(p) {
+  _origShowPage(p);
+  if (window.innerWidth <= 600) setMobileNav(p);
+};
+
+// Atualizar badge mobile quando ordens mudarem
+const _origRenderDash = window.filtrarDashPorStatus;
+
 </script>
 </body>
 </html>
