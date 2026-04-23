@@ -504,18 +504,37 @@ let paginaAtual='dashboard';
 const loaded={c:false,o:false,orc:false};
 let unsubClientes=null, unsubOrdens=null, unsubOrcamentos=null;
 
+// Timeout de seguranca: se Firebase demorar >5s, mostra login
+setTimeout(function() {
+  var ls = document.getElementById('loading-screen');
+  if (ls && ls.style.display !== 'none') {
+    ls.style.opacity = '0';
+    ls.style.display = 'none';
+    document.getElementById('login-screen').classList.add('show');
+  }
+}, 5000);
+
 // ── AUTH ──────────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
   if (user) {
     emailAtual = user.email;
     document.getElementById('loading-status').textContent = 'Carregando perfil...';
-    await carregarPerfil(user.uid, user.email);
+    try {
+      await carregarPerfil(user.uid, user.email);
+    } catch(e) {
+      perfilAtual = 'tecnico';
+      nomeAtual = user.email.split('@')[0];
+    }
     document.getElementById('login-screen').classList.remove('show');
     aplicarPerfil();
     iniciarListeners();
   } else {
     pararListeners();
-    hideLoading();
+    // Garante que o loading some e o login aparece
+    const ls = document.getElementById('loading-screen');
+    ls.style.transition = 'none';
+    ls.style.opacity = '0';
+    ls.style.display = 'none';
     document.getElementById('login-screen').classList.add('show');
   }
 });
