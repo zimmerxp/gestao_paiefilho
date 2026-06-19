@@ -741,26 +741,38 @@ onAuthStateChanged(auth, async user => {
 });
 
 async function carregarPerfil(uid, email) {
+  // Lista de emails admin fixos (fallback caso Firestore falhe)
+  const ADMINS_FIXOS = ['admin@paiefilho.com.br', 'zimmerxp@hotmail.com'];
   try {
     const snap = await getDoc(doc(db, 'usuarios', uid));
     if (snap.exists()) {
       const d = snap.data();
       perfilAtual = d.perfil || 'tecnico';
       nomeAtual = d.nome || email.split('@')[0];
+      console.log('[Perfil] carregado do Firestore:', perfilAtual, nomeAtual);
     } else {
-      // Se for o admin principal, cria automaticamente
-      if (email === 'admin@paiefilho.com.br') {
-        await setDoc(doc(db, 'usuarios', uid), { email, perfil: 'admin', nome: 'Administrador', criadoEm: serverTimestamp() });
-        perfilAtual = 'admin';
-        nomeAtual = 'Administrador';
-      } else {
-        perfilAtual = 'tecnico';
-        nomeAtual = email.split('@')[0];
+      // Documento não existe — criar automaticamente
+      const isAdminFixo = ADMINS_FIXOS.includes(email);
+      const perfil = isAdminFixo ? 'admin' : 'tecnico';
+      const nome = email.split('@')[0];
+      try {
+        await setDoc(doc(db, 'usuarios', uid), {
+          email, perfil, nome, criadoEm: serverTimestamp()
+        });
+        console.log('[Perfil] documento criado automaticamente:', perfil);
+      } catch(e2) {
+        console.warn('[Perfil] não conseguiu criar documento:', e2.message);
       }
+      perfilAtual = perfil;
+      nomeAtual = nome;
     }
   } catch(e) {
-    perfilAtual = 'tecnico';
+    // Firestore falhou (ex: regras de segurança) — usar fallback por email
+    console.warn('[Perfil] erro Firestore:', e.code, e.message);
+    const isAdminFixo = ADMINS_FIXOS.includes(email);
+    perfilAtual = isAdminFixo ? 'admin' : 'tecnico';
     nomeAtual = email.split('@')[0];
+    console.log('[Perfil] fallback por email:', perfilAtual);
   }
 }
 
@@ -877,7 +889,8 @@ function pararListeners() {
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
-const isAdmin = () => perfilAtual === 'admin';
+const EMAILS_ADMIN = ['admin@paiefilho.com.br', 'zimmerxp@hotmail.com'];
+const isAdmin = () => perfilAtual === 'admin' || EMAILS_ADMIN.includes(emailAtual);
 const getCliente = id => clientes.find(c=>c.id===id)||{nome:'—',tel:''};
 const fmtM = v => 'R$ '+(parseFloat(v)||0).toFixed(2).replace('.',',');
 const fmtD = d => {if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;};
